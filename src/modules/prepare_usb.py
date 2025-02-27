@@ -4,7 +4,7 @@ import time
 from modules.command_executor import CommandExecutor
 
 console = Console()
-executer = CommandExecutor(use_sudo=True, debug=True)
+executer = CommandExecutor(use_sudo=True, debug=False)
 
 def list_disks():
     console.print('[cyan]Достпные диски:[/cyan]')
@@ -33,7 +33,7 @@ def prepare_usb(disk):
         console.print('[yellow]Отмена операции.[/yellow]')
         return
     
-    console.print('[cyan]Шаг 1: Очистка флешки и создание GPT-разметки[/cyan]]')
+    console.print('[cyan]Шаг 1: Очистка флешки и создание GPT-разметки[/cyan]l')
     executer.run(f'parted -s {disk} mklabel gpt')
 
     console.print('[cyan]Шаг 2: Создание разделов[/cyan]')
@@ -55,13 +55,12 @@ def prepare_usb(disk):
 
 def unmount_partitions(disk):
     console.print(f'[yellow]Отмонтирование разделов на {disk}...[/yellow]')
-    partitions = executer.run(f'lsblk -lno NAME,MOUNTPOINT | grep "^$(basename {disk})[0-9])" | awk "{{print $1}}"')
-    print(partitions)
+    partitions = executer.run(f'lsblk -lno NAME,MOUNTPOINT | grep "^$(basename /dev/sda)[0-9]" | awk "{{print $1}}"')
 
     if partitions:
         for part in partitions.splitlines():
             part_path = f'/dev/{part}'
-            executer.run(f'sudo umount {part_path}')
+            executer.run(f'umount {part_path}', show_err=False)
             console.print(f'[green]Отмонтирован:[/green] {part_path}')
     else:
         console.print(f'[yellow]Разделы не были смонтированы.[/yellow]')

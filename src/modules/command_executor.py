@@ -9,7 +9,7 @@ class CommandExecutor:
         self.use_sudo = use_sudo
         self.debug = debug
 
-    def run(self, command: str, capture_output: bool = True) -> Optional[str]:
+    def run(self, command: str, capture_output: bool = True, show_err: bool = True) -> Optional[str]:
         full_command = f'sudo {command}' if self.use_sudo else command
 
         if self.debug:
@@ -27,6 +27,9 @@ class CommandExecutor:
             return None
         
         except subprocess.CalledProcessError as e:
-            console.print(f'[red]Ошибка при выполнении команды:[/red] {full_command}')
-            console.print(f'[red]Ошибка:[/red] {e.stderr.strip()}')
-            return None
+            if show_err:
+                console.print(f'[red]Ошибка при выполнении команды:[/red] {full_command}')
+                console.print(f'[red]Ошибка:[/red] {e.stderr.strip()}')
+                return None
+            else:
+                return None
