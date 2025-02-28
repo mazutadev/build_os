@@ -6,7 +6,7 @@ executer = CommandExecutor(use_sudo=True, debug=True)
 
 def install_grub():
     console.print('[cyan]Установка GRUB...[/cyan]')
-    executer.run('grub-install --target=x86_64-efi --efi-directory=/mnt/usb/boot/efi --boot-directory=/mnt/usb/boot --removable', capture_output=False)
+    executer.run('grub-install --target=x86_64-efi --efi-directory=/mnt/usb/boot/efi --boot-directory=/mnt/usb/boot --removable --recheck', capture_output=False)
     console.print('[bold green]GRUB установлен![/bold green]')
 
 def create_grub_cfg():
@@ -17,9 +17,9 @@ set timeout=5
 set default=0
 
 menyentry "Live Copy OS" {
-  search --no-floppy --set=root --label LIVE_USB
-  linux /boot/vmlinuz boot=casper root=LABEL=LIVE_USB ro quiet spalsh toram
-  initrd /boot/initrd.img
+    search --no-floppy --set=root --label LIVE_USB
+    linux /boot/vmlinuz root=LABEL=LIVE_USB rw quiet spalsh toram
+    initrd /boot/initrd.img
 }
 """
     with open('/mnt/usb/boot/grub/grub.cfg', 'w') as f:
@@ -31,8 +31,8 @@ def config_fstab():
     console.print('[cyan]Настройка fstab...[/cyan]')
 
     fstab = """
-LABEL=LIVE_USB / ext4 defaults,noatime,ro 0 1
-tmpfs /tmp tmpfs default,nosuid,nodev 0 0
+LABEL=LIVE_USB / ext4 defaults 0 1
+tmpfs /tmp tmpfs defaults 0 0
 """
 
     with open('/mnt/usb/etc/fstab', 'w') as f:

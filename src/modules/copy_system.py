@@ -18,6 +18,8 @@ def mount_usb(disk):
 
     executer.run(f'mkdir -p /mnt/usb/boot/efi')
 
+    executer.run(f'mkdir -p /mnt/usb/boot/grub')
+
     executer.run(f'mount {efi_part} /mnt/usb/boot/efi')
 
     console.print('[bold green] Флешка успешно смонтирована![/bold green]')

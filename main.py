@@ -21,7 +21,7 @@ def main():
         config_fstab()
 
 def install():
-    install_casper()
+    #install_casper()
     install_grub()
     create_grub_cfg()
     config_fstab()
