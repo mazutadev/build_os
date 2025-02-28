@@ -27,7 +27,7 @@ def copy_system():
 
     rsync_cmd = (
         "rsync -aAXv --progress /* /mnt/usb "
-        "--exclude /mnt --exclude /mnt/usb --exclude /dev --exclude /proc --exclude /sys --exclude /tmp --exclude /run --exclude /media --exclude /lost+found --exclude /home/dev-pc/work/build --exclude /home/dev-pc/Downloads --exclude /snap --exclude /srv --exclude /var/www --exclude /var/cache --exclude /swap.img --exclude /var/swap.img"
+        "--exclude /mnt --exclude /mnt/usb --exclude /dev --exclude /proc --exclude /sys --exclude /tmp --exclude /run --exclude /media --exclude /lost+found --exclude /swap.img --exclude /var/swap.img --exclude /boot/efi/EFI --exclude /boot/grub --exclude /etc/default/grub --exclude /etc/grub.d"
     )
 
     executer.run(rsync_cmd, capture_output=False)
