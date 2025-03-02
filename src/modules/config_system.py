@@ -12,10 +12,14 @@ def install_grub():
     mount_dirs()
     try:
         executer.run('chroot /mnt/usb apt update', capture_output=False)
-        executer.run('chroot /mnt/usb apt install grub-common grub-efi-amd64-bin grub-efi-amd64 grub2-common -y', capture_output=False)
+        executer.run('chroot /mnt/usb apt install grub-efi grub-efi-amd64-bin grub-efi-amd64 grub-common grub2-common -y', capture_output=False)
+
+        #executer.run('chroot /mnt/usb apt install --reinstall -y grub-common', capture_output=False)
+
+        #executer.run('mkdir -p /mnt/usb/etc/grub.d')
 
         executer.run('chroot /mnt/usb grub-install --target=x86_64-efi --efi-directory=/boot/efi --boot-directory=/boot --removable --recheck', capture_output=False)
-        executer.run('chroot /mnt/usb update-grub', capture_output=False)
+        #executer.run('chroot /mnt/usb update-grub', capture_output=False)
         console.print('[bold green]GRUB установлен![/bold green]')
     finally:
         umount_dirs()

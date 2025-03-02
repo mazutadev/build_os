@@ -37,7 +37,7 @@ def copy_system():
     executer.run('cp -p /etc/shadow /mnt/usb/etc/', capture_output=False)
     executer.run('cp -p /etc/group /mnt/usb/etc/', capture_output=False)
     executer.run('cp -p /etc/gshadow /mnt/usb/etc/', capture_output=False)
-    executer.run('cp -p -- remove-destination /etc/resolv.conf /mnt/usb/etc/', capture_output=False)
+    executer.run('cp -p --remove-destination /etc/resolv.conf /mnt/usb/etc/', capture_output=False)
 
 
 
