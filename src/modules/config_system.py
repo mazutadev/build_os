@@ -6,20 +6,16 @@ from modules.command_executor import CommandExecutor
 console = Console()
 executer = CommandExecutor(use_sudo=True, debug=True)
 
-def install_grub():
+def install_grub(disk):
     console.print('[cyan]Установка GRUB...[/cyan]')
     make_dirs()
     mount_dirs()
     try:
         executer.run('chroot /mnt/usb apt update', capture_output=False)
-        executer.run('chroot /mnt/usb apt install grub-efi grub-efi-amd64-bin grub-efi-amd64 grub-common grub2-common -y', capture_output=False)
-
-        #executer.run('chroot /mnt/usb apt install --reinstall -y grub-common', capture_output=False)
-
-        #executer.run('mkdir -p /mnt/usb/etc/grub.d')
+        executer.run('chroot /mnt/usb apt install grub-efi grub-pc-bin grub-efi-amd64-bin grub-efi-amd64 grub-common grub2-common -y', capture_output=False)
 
         executer.run('chroot /mnt/usb grub-install --target=x86_64-efi --efi-directory=/boot/efi --boot-directory=/boot --removable --recheck', capture_output=False)
-        #executer.run('chroot /mnt/usb update-grub', capture_output=False)
+        executer.run(f'chroot /mnt/usb grub-install --target=i386-pc --boot-directory=/boot --recheck {disk}', capture_output=False)
         console.print('[bold green]GRUB установлен![/bold green]')
     finally:
         umount_dirs()

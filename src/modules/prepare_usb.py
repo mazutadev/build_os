@@ -37,19 +37,24 @@ def prepare_usb(disk) -> bool:
         executer.run(f'parted -s {disk} mklabel gpt')
 
         console.print('[cyan]Шаг 2: Создание разделов[/cyan]')
-        executer.run(f'parted -s {disk} mkpart primary fat32 1MiB 513MiB')
+
+        executer.run(f'parted -s {disk} mkpart bios_grub 1MiB 2MiB')
+        executer.run(f'parted -s {disk} set 1 bios_grub on')
         executer.run('partprobe')
         time.sleep(1)
-        executer.run(f'parted -s {disk} set 1 esp on')
-        executer.run(f'parted -s {disk} mkpart primary ext4 513MiB 100%')
-        #executer.run(f'parted -s {disk} mkpart primary ext4 26GB 100%')
+
+        executer.run(f'parted -s {disk} mkpart primary fat32 2MiB 514MiB')
+        executer.run('partprobe')
+        time.sleep(1)
+        executer.run(f'parted -s {disk} set 2 esp on')
+
+        executer.run(f'parted -s {disk} mkpart primary ext4 514MiB 100%')
 
         console.print('[cyan]Шаг 3: Форматирование разделов[/cyan]')
         executer.run('partprobe')
         time.sleep(2)
-        executer.run(f'mkfs.vfat -I -F32 {disk}1 -n EFI')
-        executer.run(f'mkfs.ext4 -F {disk}2 -L LIVE_USB')
-        #executer.run(f'mkfs.ext4 -F {disk}3 -L casper-rw')
+        executer.run(f'mkfs.vfat -I -F32 {disk}2 -n EFI')
+        executer.run(f'mkfs.ext4 -F {disk}3 -L LIVE_USB')
 
         console.print('[bold green]Флешка успешно подготовлена![/bold green]')
         return True

@@ -9,8 +9,8 @@ executer = CommandExecutor(use_sudo=True, debug=True)
 def mount_usb(disk):
     console.print('[cyan]Монитирование разделов...[/cyan]')
 
-    live_usb = f'{disk}2'
-    efi_part = f'{disk}1'
+    live_usb = f'{disk}3'
+    efi_part = f'{disk}2'
 
     executer.run('mkdir -p /mnt/usb')
 
