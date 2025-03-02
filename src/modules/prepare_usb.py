@@ -41,15 +41,15 @@ def prepare_usb(disk) -> bool:
         executer.run('partprobe')
         time.sleep(1)
         executer.run(f'parted -s {disk} set 1 esp on')
-        executer.run(f'parted -s {disk} mkpart primary ext4 513MiB 26GB')
-        executer.run(f'parted -s {disk} mkpart primary ext4 26GB 100%')
+        executer.run(f'parted -s {disk} mkpart primary ext4 513MiB 100%')
+        #executer.run(f'parted -s {disk} mkpart primary ext4 26GB 100%')
 
         console.print('[cyan]Шаг 3: Форматирование разделов[/cyan]')
         executer.run('partprobe')
         time.sleep(2)
         executer.run(f'mkfs.vfat -I -F32 {disk}1 -n EFI')
         executer.run(f'mkfs.ext4 -F {disk}2 -L LIVE_USB')
-        executer.run(f'mkfs.ext4 -F {disk}3 -L casper-rw')
+        #executer.run(f'mkfs.ext4 -F {disk}3 -L casper-rw')
 
         console.print('[bold green]Флешка успешно подготовлена![/bold green]')
         return True
