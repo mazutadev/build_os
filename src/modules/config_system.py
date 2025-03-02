@@ -56,26 +56,26 @@ tmpfs /tmp tmpfs defaults 0 0
     console.print('[bold green]fstab настроен[/bold green]')
 
 def make_dirs():
-    executer.run('mkdir -p /mnt/usb/dev')
-    executer.run('mkdir -p /mnt/usb/proc')
-    executer.run('mkdir -p /mnt/usb/sys')
-    executer.run('mkdir -p /mnt/usb/run')
-    executer.run('mkdir -p /mnt/usb/tmp')
-    executer.run('mkdir -p /mnt/usb/mnt')
-    executer.run('mkdir -p /mnt/usb/media')
+    dirs = ['dev', 'proc', 'sys', 'run', 'tmp', 'mnt', 'media']
+
+    for dir in dirs:
+        executer.run(f'mkdir -p /mnt/usb/{dir}')
+
     executer.run('chmod 1777 /mnt/usb/tmp')
 
 def mount_dirs():
-    executer.run('mount --bind /dev /mnt/usb/dev')
-    executer.run('mount --bind /proc /mnt/usb/proc')
-    executer.run('mount --bind /sys /mnt/usb/sys')
-    executer.run('mount --bind /run /mnt/usb/run')
+    dirs = ['dev', 'proc', 'sys', 'run']
+
+    for dir in dirs:
+        executer.run(f'mount --bind /{dir} /mnt/usb/{dir}')
+
 
 def umount_dirs():
-    executer.run('umount /mnt/usb/dev')
-    executer.run('umount /mnt/usb/proc')
-    executer.run('umount /mnt/usb/sys')
-    executer.run('umount /mnt/usb/run')
+    dirs = ['dev', 'proc', 'sys', 'run']
+
+    for dir in dirs:
+        executer.run(f'umount /mnt/usb/{dir}')
+    
 
 def install_casper():
     make_dirs()

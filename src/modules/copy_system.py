@@ -13,15 +13,10 @@ def mount_usb(disk):
     efi_part = f'{disk}2'
 
     executer.run('mkdir -p /mnt/usb')
-
     executer.run(f'mount {live_usb} /mnt/usb')
-
     executer.run(f'mkdir -p /mnt/usb/boot/efi')
-
     executer.run(f'mkdir -p /mnt/usb/boot/grub')
-
     executer.run(f'mount {efi_part} /mnt/usb/boot/efi')
-
     console.print('[bold green] Флешка успешно смонтирована![/bold green]')
 
 def copy_system():
@@ -38,8 +33,5 @@ def copy_system():
     executer.run('cp -p /etc/group /mnt/usb/etc/', capture_output=False)
     executer.run('cp -p /etc/gshadow /mnt/usb/etc/', capture_output=False)
     executer.run('cp -p --remove-destination /etc/resolv.conf /mnt/usb/etc/', capture_output=False)
-
-
-
 
     console.print('[bold green]Система успешно скопирована![/bold green]')
