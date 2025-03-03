@@ -14,14 +14,11 @@ def main():
     if prepare_usb(disk):
         mount_usb(disk)
         copy_system()
-
-        #install_casper()
         install_grub(disk)
         copy_grub_cfg('/mnt/usb')
         config_fstab()
 
 def install():
-    #install_casper()
     disk = input('Введите устройсво (например, /dev/sdb):').strip()
     install_grub(disk)
     copy_grub_cfg('/mnt/usb')
@@ -30,4 +27,4 @@ def install():
 
 
 if __name__ == "__main__":
-    install()
+    main()

@@ -28,10 +28,12 @@ def copy_system():
     )
 
     executer.run(rsync_cmd, capture_output=False)
-    executer.run('cp -p /etc/passwd /mnt/usb/etc/', capture_output=False)
-    executer.run('cp -p /etc/shadow /mnt/usb/etc/', capture_output=False)
-    executer.run('cp -p /etc/group /mnt/usb/etc/', capture_output=False)
-    executer.run('cp -p /etc/gshadow /mnt/usb/etc/', capture_output=False)
+
+    copy_files = ['passwd', 'shadow', 'group', 'gshadow']
+
+    for file in copy_files:
+        executer.run(f'cp -p /etc/{file} /mnt/usb/etc/', capture_output=False)
+
     executer.run('cp -p --remove-destination /etc/resolv.conf /mnt/usb/etc/', capture_output=False)
 
     console.print('[bold green]Система успешно скопирована![/bold green]')
