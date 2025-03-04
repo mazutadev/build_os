@@ -1,10 +1,10 @@
 from rich.console import Console
-import shutil
 import os
-import datetime
 from modules.command_executor import CommandExecutor
 from modules.utils import get_project_root, get_distro_name, get_current_date
 from modules.system_builder.copy_system import copy_system
+from modules.chroot_manager.chroot_manager import ChrootManager
+
 
 console = Console()
 executer = CommandExecutor(use_sudo=True, debug=False)
@@ -47,6 +47,15 @@ def _get_boot(destination_copy: str):
 
 def prepare_pxe():
     destination_path = _create_build_dir()
-    copy_system(rootfs='/*', destination_copy=destination_path)
-    _create_squashfs(destination_copy=destination_path)
-    _get_boot(destination_copy=destination_path)
+
+    #copy_system(rootfs='/*', destination_copy=destination_path)
+    #_get_boot(destination_copy=destination_path)
+    #_create_squashfs(destination_copy=destination_path)
+
+    try:
+        with ChrootManager(destination_path) as chroot:
+            chroot.run_command('/bin/bash')
+            #chroot.run_command('apt update')
+            #chroot.run_command('apt upgrade')
+    except Exception as e:
+        print(e)
