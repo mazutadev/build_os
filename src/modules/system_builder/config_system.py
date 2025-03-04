@@ -2,24 +2,21 @@ from rich.console import Console
 import shutil
 import os
 from modules.command_executor import CommandExecutor
+from modules.chroot_manager.chroot_manager import ChrootManager
 
 console = Console()
 executer = CommandExecutor(use_sudo=True, debug=True)
 
 def install_grub(disk):
     console.print('[cyan]Установка GRUB...[/cyan]')
-    make_dirs()
-    mount_dirs()
-    try:
-        executer.run('chroot /mnt/usb apt update', capture_output=False)
-        executer.run('chroot /mnt/usb apt install grub-efi grub-pc-bin grub-efi-amd64-bin grub-efi-amd64 grub-common grub2-common -y', capture_output=False)
 
-        executer.run('chroot /mnt/usb grub-install --target=x86_64-efi --efi-directory=/boot/efi --boot-directory=/boot --removable --recheck', capture_output=False)
-        executer.run(f'chroot /mnt/usb grub-install --target=i386-pc --boot-directory=/boot --recheck {disk}', capture_output=False)
+    with ChrootManager('/mnt/usb') as chroot:
+        chroot.run_command('apt update')
+        chroot.run_command('apt install grub-efi grub-pc-bin grub-efi-amd64-bin grub-efi-amd64 grub-common grub2-common -y')
+        chroot.run_command('chroot /mnt/usb grub-install --target=x86_64-efi --efi-directory=/boot/efi --boot-directory=/boot --removable --recheck')
+        chroot.run_command(f'chroot /mnt/usb grub-install --target=i386-pc --boot-directory=/boot --recheck {disk}', capture_output=False)
+
         console.print('[bold green]GRUB установлен![/bold green]')
-    finally:
-        umount_dirs()
-
 
 def copy_grub_cfg(usb_mount_path):
     console.print('[cyan]Копирование конфигурации GRUB[/cyan]')
@@ -54,36 +51,3 @@ tmpfs /tmp tmpfs defaults 0 0
         f.write(fstab)
 
     console.print('[bold green]fstab настроен[/bold green]')
-
-def make_dirs():
-    dirs = ['dev', 'proc', 'sys', 'run', 'tmp', 'mnt', 'media']
-
-    for dir in dirs:
-        executer.run(f'mkdir -p /mnt/usb/{dir}')
-
-    executer.run('chmod 1777 /mnt/usb/tmp')
-
-def mount_dirs():
-    dirs = ['dev', 'proc', 'sys', 'run']
-
-    for dir in dirs:
-        executer.run(f'mount --bind /{dir} /mnt/usb/{dir}')
-
-
-def umount_dirs():
-    dirs = ['dev', 'proc', 'sys', 'run']
-
-    for dir in dirs:
-        executer.run(f'umount /mnt/usb/{dir}')
-    
-
-def install_casper():
-    make_dirs()
-    mount_dirs()
-    console.print('[cyan]Установка casper в Live-систему...[/cyan]')
-    try:
-        executer.run('chroot /mnt/usb apt update', capture_output=False)
-        executer.run('chroot /mnt/usb apt install -y casper', capture_output=False)
-        console.print('[bold green]casper установлен![/bold green]')
-    finally:
-        umount_dirs()

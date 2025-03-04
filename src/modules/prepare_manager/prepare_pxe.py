@@ -48,14 +48,18 @@ def _get_boot(destination_copy: str):
 def prepare_pxe():
     destination_path = _create_build_dir()
 
-    #copy_system(rootfs='/*', destination_copy=destination_path)
-    #_get_boot(destination_copy=destination_path)
-    #_create_squashfs(destination_copy=destination_path)
+    copy_system(rootfs='/*', destination_copy=destination_path)
+    
 
     try:
         with ChrootManager(destination_path) as chroot:
-            chroot.run_command('/bin/bash')
-            #chroot.run_command('apt update')
-            #chroot.run_command('apt upgrade')
+            #chroot.run_command('/bin/bash')
+            chroot.run_command('apt update -y')
+            chroot.run_command('apt install -y casper live-boot')
+            chroot.run_command('apt install -y neofetch')
+            chroot.run_command('neofetch')
     except Exception as e:
         print(e)
+
+    _get_boot(destination_copy=destination_path)
+    _create_squashfs(destination_copy=destination_path)
