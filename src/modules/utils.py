@@ -6,7 +6,7 @@ from modules.command_executor import CommandExecutor
 console = Console()
 executer = CommandExecutor(use_sudo=True, debug=False)
 
-def get_project_root():
+def get_project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
 def get_distro_name():
@@ -25,5 +25,5 @@ def get_distro_name():
                         return line.strip().split('=')[1].replace('"', '').lower()
         return ["unknown"]
 
-def get_current_date():
+def get_current_date() -> str:
     return datetime.datetime.now().strftime("%Y-%m-%d")
