@@ -26,17 +26,12 @@ class SystemBuilder:
         console.print('[cyan]Выполняю debootstrap для {self.distro} {self.realease} ({self.arch})[/cyan]')
         executer.run(f'debootstrap --arch={self.arch} {self.release} {self.rootfs_path} http://archive.ubuntu.com/ubuntu/')
 
-    def install_packages(self):
+    def install_packages(self, essential_packages: list):
         console.print('[cyan]Устанавливаю необходимые пакеты в chroot[/cyan]')
-        essential_packages = [
-            'grub-efi', 'grub-pc', 'grub-pc-bin',
-            'grub-efi-amd64-bin', 'grub-efi-amd64', 'grub-common', 'grub2-common'
-        ]
-
         packages = ' '.join(essential_packages)
 
         with self.chroot_manager as chroot:
-            #chroot.run_command('/bin/bash')
+            chroot.run_command('/bin/bash')
             chroot.run_command(f'apt update')
 
             for pkg in essential_packages:
