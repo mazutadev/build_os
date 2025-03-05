@@ -13,8 +13,8 @@ def install_grub(disk):
     with ChrootManager('/mnt/usb') as chroot:
         chroot.run_command('apt update')
         chroot.run_command('apt install grub-efi grub-pc-bin grub-efi-amd64-bin grub-efi-amd64 grub-common grub2-common -y')
-        chroot.run_command('chroot /mnt/usb grub-install --target=x86_64-efi --efi-directory=/boot/efi --boot-directory=/boot --removable --recheck')
-        chroot.run_command(f'chroot /mnt/usb grub-install --target=i386-pc --boot-directory=/boot --recheck {disk}')
+        chroot.run_command('grub-install --target=x86_64-efi --efi-directory=/boot/efi --boot-directory=/boot --removable --recheck')
+        chroot.run_command(f'grub-install --target=i386-pc --boot-directory=/boot --recheck {disk}')
 
     console.print('[bold green]GRUB установлен![/bold green]')
 

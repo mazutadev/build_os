@@ -25,6 +25,11 @@ def copy_system(rootfs: str, destination_copy: str):
 
     project_root = get_project_root()
 
+    exclude = ['/mnt', '/dev', '/proc', '/sys', 
+               '/tmp', '/run', '/media', '/lost+found', 
+               '/swap.img', '/var/swap.img', '/boot/efi/EFI', 
+               '/boot/grub', '/etc/default/grub', '/etc/grub.d']
+
     rsync_cmd = (
         f"rsync -aAXv --progress {rootfs} {destination_copy} "
         f"--exclude /mnt --exclude /mnt/usb --exclude /dev --exclude /proc --exclude /sys --exclude /tmp --exclude /run --exclude /media --exclude /lost+found --exclude /swap.img --exclude /var/swap.img --exclude /boot/efi/EFI --exclude /boot/grub --exclude /etc/default/grub --exclude /etc/grub.d --exclude {project_root}"
