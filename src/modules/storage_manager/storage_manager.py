@@ -7,6 +7,7 @@ from rich.table import Table
 from modules.command_executor import CommandExecutor
 from modules.storage_manager.usb_manager import USBManager
 from modules.system_builder.system_builder import SystemBuilder
+from modules.storage_manager.copy_manager import CopyManager
 
 console = Console()
 executer = CommandExecutor(use_sudo=True, debug=True)
