@@ -2,8 +2,10 @@ import sys
 sys.path.insert(0, 'src')
 
 from modules.storage_manager.storage_manager import StorageManager
+from modules.build_manager.build_manager import BuildManager
 
 storage_manager = StorageManager()
+build_manager = BuildManager(use_sudo=True, debug=True)
 
 def make_usb(mount_point: str = '/mnt/usb'):
     exclude = ['/mnt', '/dev', '/proc', '/sys', 
@@ -17,5 +19,11 @@ def make_usb(mount_point: str = '/mnt/usb'):
 
     storage_manager.deploy_system_to_usb(mount_point, deploy=False)
 
+def install_system():
+    build_manager = BuildManager(use_sudo=True, debug=True)
+    build_manager.init_workspace('clean_install')
+    build_manager.install_system('ubuntu', 'noble', 'amd64', force_reinstall=False)
+    build_manager.init_system(interactive=False)
+
 if __name__ == "__main__":
-    make_usb()
+    install_system()
