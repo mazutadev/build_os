@@ -13,6 +13,7 @@ class BuildManager:
         self.console = Console()
         self.executer = CommandExecutor(use_sudo, debug)
         self.storage_manager = StorageManager(executer=self.executer)
+        self.project_root = None
         self.rootfs_path = None
         self.ready_to_install = False
         
@@ -20,18 +21,21 @@ class BuildManager:
         self.storage_manager.find_project_root()
         self.storage_manager.create_build_directory('ubuntu', '24.04', project_type)
         self.rootfs_path = self.storage_manager.rootfs_path
+        self.project_root = self.storage_manager.project_root
         
         
     def install_system(self, distro, release, arch, method='debootstrap', force_reinstall=False):
-        self.installer = SystemInstaller(method=method, executer=self.executer, console=self.console)
-        self.ready_to_install = self.installer.install(rootfs_path=self.rootfs_path, distro=distro, 
-                               release=release, arch=arch, force_reinstall=force_reinstall)
+        self.installer = SystemInstaller(method=method, executer=self.executer, console=self.console, 
+                                         project_root=self.project_root, rootfs_path=self.rootfs_path)
+        
+        self.ready_to_install = self.installer.install(distro=distro, release=release, 
+                                                       arch=arch, force_reinstall=force_reinstall)
         
     def init_system(self, interactive):
-        self.chroot_manager = ChrootManager(chroot_destination=self.rootfs_path, 
-                                            executer=self.executer, console=self.console)
+        self.chroot_manager = ChrootManager(executer=self.executer, console=self.console, chroot_destination=self.rootfs_path)
         self.system_setup = SystemSetup(executer=self.executer, console=self.console, 
-                                        rootfs_path=self.rootfs_path, chroot_manager=self.chroot_manager)
+                                        rootfs_path=self.rootfs_path, project_root=self.project_root, 
+                                        chroot_manager=self.chroot_manager)
         
         if self.ready_to_install:
             self.system_setup.system_init(interactive=interactive)

@@ -4,12 +4,18 @@ from modules.command_executor import CommandExecutor
 from modules.chroot_manager.chroot_manager import ChrootManager
 
 class SystemSetup:
-    def __init__(self, executer=None, console=None, rootfs_path=None, chroot_manager=None):
-        if not rootfs_path:
-            raise RuntimeError('Не могу найти rootfs директорию')
-        self.rootfs_path = rootfs_path
+    def __init__(self, executer=None, console=None, rootfs_path=None, project_root=None, chroot_manager=None):
         self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
         self.console = console or Console()
+
+        if not project_root:
+            raise RuntimeError('Не могу получить путь корневой директории проекта.')
+        if not rootfs_path:
+            raise RuntimeError('Не могу получить путь к rootfs устанавливаемой системы')
+        
+        self.project_root = project_root
+        self.rootfs_path = rootfs_path
+        
         self.chroot_manager = chroot_manager or ChrootManager(chroot_destination=self.rootfs_path,
                                                                executer=self.executer, console=self.console)
 
