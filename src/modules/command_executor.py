@@ -13,23 +13,25 @@ class CommandExecutor:
         full_command = f'sudo {command}' if self.use_sudo else command
 
         if self.debug:
-            console.print(f'[blue]Выполняю команду:[/blue] {full_command}')
+            console.print(f'[blue]▶️ Выполняю команду:[/blue] {full_command}')
         
-        try:
-            result = subprocess.run(full_command, shell=True, 
-                                    text=True, 
-                                    capture_output=capture_output, 
-                                    check=True)
-            
-            if capture_output:
-                return result.stdout.strip()
-            
-            return None
+
+        result = subprocess.run(full_command, shell=True, 
+                                text=True, 
+                                capture_output=capture_output, 
+                                check=False)
         
-        except subprocess.CalledProcessError as e:
-            if show_err:
-                console.print(f'[red]Ошибка при выполнении команды:[/red] {full_command}')
-                console.print(f'[red]Ошибка:[/red] {e.stderr.strip()}')
-                return None
-            else:
-                return None
+        command_result = {
+            'stdout': result.stdout.strip() if result.stdout else None,
+            'stderr': result.stderr.strip() if result.stderr else None,
+            'returncode': result.returncode
+        }
+
+        if result.returncode != 0 and show_err:
+            console.print(f'[red]× Ошибка при выполнении команды:[/red] {full_command} [bold yellow]returncode: {result.returncode}[/bold yellow]')
+            if command_result['stderr']:
+                console.print(f'[red]Ошибка:[/red] {command_result['stderr']}')
+                raise RuntimeError(f'Возникла ошибка: {command_result['stderr']}')
+                
+            
+        return command_result

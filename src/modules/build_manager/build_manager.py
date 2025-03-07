@@ -9,33 +9,43 @@ from modules.build_manager.system_setup import SystemSetup
 
 
 class BuildManager:
-    def __init__(self, use_sudo=True, debug=True):
+    def __init__(self, distro, release, arch, method, use_sudo=True, debug=True):
         self.console = Console()
         self.executer = CommandExecutor(use_sudo, debug)
         self.storage_manager = StorageManager(executer=self.executer)
         self.project_root = None
         self.rootfs_path = None
-        self.ready_to_install = False
+        self.ready_to_setup = False
+        self.method = method
+        self.distro = distro
+        self.release = release
+        self.arch = arch
         
-    def init_workspace(self, project_type: str):
+    def init_workspace(self):
         self.storage_manager.find_project_root()
-        self.storage_manager.create_build_directory('ubuntu', '24.04', project_type)
+        self.storage_manager.create_build_directory(distro=self.distro, release=self.release, 
+                                                    method=self.method)
         self.rootfs_path = self.storage_manager.rootfs_path
         self.project_root = self.storage_manager.project_root
         
         
-    def install_system(self, distro, release, arch, method='debootstrap', force_reinstall=False):
+    def install_system(self, method=None, force_reinstall=False):
         self.installer = SystemInstaller(method=method, executer=self.executer, console=self.console, 
-                                         project_root=self.project_root, rootfs_path=self.rootfs_path)
+                                         project_root=self.project_root, rootfs_path=self.rootfs_path, 
+                                         distro=self.distro, release=self.release, arch=self.arch)
         
-        self.ready_to_install = self.installer.install(distro=distro, release=release, 
-                                                       arch=arch, force_reinstall=force_reinstall)
+
+        self.ready_to_setup = self.installer.install(force_reinstall=force_reinstall)
         
     def init_system(self, interactive):
         self.chroot_manager = ChrootManager(executer=self.executer, console=self.console, chroot_destination=self.rootfs_path)
         self.system_setup = SystemSetup(executer=self.executer, console=self.console, 
                                         rootfs_path=self.rootfs_path, project_root=self.project_root, 
-                                        chroot_manager=self.chroot_manager)
+                                        chroot_manager=self.chroot_manager, distro=self.distro, release=self.release, 
+                                        arch=self.arch)
         
-        if self.ready_to_install:
-            self.system_setup.system_init(interactive=interactive)
+        if self.ready_to_setup:
+            self.system_setup.init_system(interactive=interactive)
+
+    def install_packages(self):
+        self.system_setup.install_packages()

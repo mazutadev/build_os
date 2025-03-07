@@ -3,7 +3,8 @@ from rich.console import Console
 from modules.command_executor import CommandExecutor
 
 class DebootStrapInstaller:
-    def __init__(self, console=None, executer=None, project_root=None, rootfs_path=None):
+    def __init__(self, distro, release, arch, console=None, 
+                 executer=None, project_root=None, rootfs_path=None):
         self.console = console or Console()
         self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
 
@@ -14,6 +15,9 @@ class DebootStrapInstaller:
         
         self.project_root = project_root
         self.rootfs_path = rootfs_path
+        self.distro = distro
+        self.release = release
+        self.arch = arch
 
         self.console.print('[cyan]Проверка debootstrap...[/cyan]')
         self.executer.run('dpkg -s debootstrap || apt install -y debootstrap', capture_output=False)
@@ -27,7 +31,7 @@ class DebootStrapInstaller:
         
         return os.path.exists(os_release_file)
 
-    def install(self, distro, release, arch, force_reinstall=False):
+    def install(self, force_reinstall=False):
         if self._is_system_installed():
             self.console.print(f'[bold yellow]Система уже установлена в {self.rootfs_path}[/bold yellow]')
 
@@ -37,10 +41,10 @@ class DebootStrapInstaller:
             self.console.print('[bold red]Перезаписываю систему![/bold red]')
             self.executer.run(f'rm -rf {self.rootfs_path}')
 
-        self.console.print(f'[cyan]Запуск debootstrap: {distro} {release} ({arch}) {self.rootfs_path}[/cyan]')
+        self.console.print(f'[cyan]Запуск debootstrap: {self.distro} {self.release} ({self.arch}) {self.rootfs_path}[/cyan]')
         os.makedirs(self.rootfs_path, exist_ok=True)
 
-        cmd = f'debootstrap --arch={arch} {release} {self.rootfs_path} http://archive.ubuntu.com/ubuntu'
+        cmd = f'debootstrap --arch={self.arch} {self.release} {self.rootfs_path} http://archive.ubuntu.com/ubuntu'
         self.executer.run(cmd, capture_output=False)
 
         self.console.print('[green]Debootstrap завершен![/green]')

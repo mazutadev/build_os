@@ -5,7 +5,6 @@ from modules.storage_manager.storage_manager import StorageManager
 from modules.build_manager.build_manager import BuildManager
 
 storage_manager = StorageManager()
-build_manager = BuildManager(use_sudo=True, debug=True)
 
 def make_usb(mount_point: str = '/mnt/usb'):
     exclude = ['/mnt', '/dev', '/proc', '/sys', 
@@ -19,11 +18,19 @@ def make_usb(mount_point: str = '/mnt/usb'):
 
     storage_manager.deploy_system_to_usb(mount_point, deploy=False)
 
-def install_system():
-    build_manager = BuildManager(use_sudo=True, debug=True)
-    build_manager.init_workspace('clean_install')
-    build_manager.install_system('ubuntu', 'noble', 'amd64', force_reinstall=False)
-    build_manager.init_system(interactive=False)
+def install_system(distro, release, arch, method='clean_install', force_reinstall=False, interactive=False):
+    
+    if method == 'clean_install':
+        if distro == 'ubuntu':
+            build_manager = BuildManager(use_sudo=True, debug=True, distro=distro,
+                                        release=release, arch=arch, method=method)
+            build_manager.init_workspace()
+            build_manager.install_system(method='debootstrap', force_reinstall=force_reinstall)
+            
+            build_manager.init_system(interactive=interactive)
+            #build_manager.system_setup.install_packages()
+            build_manager.system_setup.create_user('admin12', '123321', True)
 
 if __name__ == "__main__":
-    install_system()
+    install_system('ubuntu', 'noble', 'amd64', 
+                   method='clean_install', force_reinstall=False, interactive=True)

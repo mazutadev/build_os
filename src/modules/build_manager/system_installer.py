@@ -3,7 +3,7 @@ from rich.console import Console
 from modules.command_executor import CommandExecutor
 
 class SystemInstaller:
-    def __init__(self, method="debootstrap", executer=None, console=None, 
+    def __init__(self, distro, release, arch, method="debootstrap", executer=None, console=None, 
                  project_root=None, rootfs_path=None):
         self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
         self.console = console or Console()
@@ -14,19 +14,22 @@ class SystemInstaller:
         
         self.project_root = project_root
         self.rootfs_path = rootfs_path
+        self.distro = distro
+        self.release = release
+        self.arch = arch
 
         self.method = method
         self.installer = None
         
-
-        if method == "debootstrap":
+        if self.method == "debootstrap":
             self.installer = DebootStrapInstaller(console=self.console, executer=self.executer, 
-                                                  project_root=self.project_root, rootfs_path=self.rootfs_path)
+                                                  project_root=self.project_root, rootfs_path=self.rootfs_path, 
+                                                  distro=self.distro, release=self.release, arch=self.arch)
         else:
-            raise ValueError(f'Метод установки "{method}" не поддерживается')
+            raise ValueError(f'Метод установки "{self.method}" не поддерживается')
         
-    def install(self, distro, release, arch, force_reinstall=False):
+    def install(self, force_reinstall=False):
         if self.installer:
-            return self.installer.install(distro=distro, release=release, arch=arch, force_reinstall=force_reinstall)
+            return self.installer.install(force_reinstall=force_reinstall)
         else:
             raise RuntimeError('Не выбран метод установки!')

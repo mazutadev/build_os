@@ -26,9 +26,9 @@ class StorageManager:
             current_dir = os.path.dirname(current_dir)
         raise RuntimeError('Не удалось определить корневую директорию проекта.')
     
-    def create_build_directory(self, distro, release, mode):
+    def create_build_directory(self, distro, release, method):
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
-        build_name = f'{distro}_{release}_{date_str}_{mode}'
+        build_name = f'{distro}_{release}_{date_str}_{method}'
         self.build_dir = os.path.join(self.project_root, 'build', build_name)
         self.rootfs_path = os.path.join(self.build_dir, 'root_fs')
 

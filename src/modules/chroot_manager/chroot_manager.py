@@ -35,7 +35,10 @@ class ChrootManager:
     def run_command(self, command):
         self.console.print(f'[blue]▶️ Выполняю команду в chroot:[/blue] [italic]{command}[/italic]')
 
-        self.executer.run(f'chroot {self.destination} {command}', capture_output=False)
+        try:
+            return self.executer.run(f'chroot {self.destination} {command}', capture_output=False)
+        except Exception as e:
+            self.console.print(f'[red]{e}[/red]')
 
     def __enter__(self):
         self.mount()
