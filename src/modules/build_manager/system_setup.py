@@ -47,6 +47,8 @@ class SystemSetup:
                 chroot.run_command(f'echo "export LC_ALL=en_US.UTF-8" >> {chroot.destination}/etc/environment')
                 chroot.run_command(f'echo "export LANGUAGE=en_US.UTF-8" >> {chroot.destination}/etc/environment')
 
+                self._install_kernel(chroot)
+
     def _user_exists(self, username, chroot):
         user_exists = chroot.run_command(f'id -u {username}')
         return user_exists['returncode'] == 0
@@ -74,8 +76,14 @@ class SystemSetup:
             chroot.run_command(f"bash -c 'echo \"{sudoers_line}\" > /etc/sudoers.d/{username}'")
             chroot.run_command(f"chmod 0440 /etc/sudoers.d/{username}")
 
-            self.console.print('💾 Устанавливаем Zsh и Oh My Zsh...')
-            self._install_zsh(username, chroot)
+            #self.console.print('💾 Устанавливаем Zsh и Oh My Zsh...')
+            #self._install_zsh(username, chroot)
+
+    def _install_kernel(self, chroot: ChrootManager):
+        self.console.print(f'[green]🔄 Устанавливаем Ядро в {self.rootfs_path}...[/green]')
+        chroot.run_command("apt install -y linux-generic")
+        chroot.run_command("update-initramfs -u -k all")
+        self.console.print(f'[green]🔄 Ядро установлено в {self.rootfs_path}...[/green]')
         
     def _install_zsh(self, username, chroot: ChrootManager):
         chroot.run_command(f'{self.package_manager} install zsh -y')
@@ -111,12 +119,12 @@ class SystemSetup:
                         'parted', 'fdisk', 'gdisk', 'btrfs-progs', 
                         'xfsprogs', 'e2fsprogs', 'f2fs-tools', 'exfatprogs', 
                         'ntfs-3g', 'dosfstools', 'lvm2', 'mdadm', 
-                        'cryptsetup', 'nvme-cli', 'memtester', 'fio', 
-                        'stress-ng', 'ipmitool', 
+                        'cryptsetup', 'nvme-cli', 'memtester', 'fio',
+                        'stress-ng', 'ipmitool',
                         'dmidecode', 'inxi', 'lshw', 'hwinfo', 'lsscsi', 
                         'sg3-utils', 'cpuid', 'msr-tools', 'python3', 
                         'python3-pip', 'python3-venv', 'jq', 'ansible', 
-                        'wireshark', 'tshark', 'neofetch']
+                        'wireshark', 'tshark', 'neofetch', 'casper', 'live-boot', 'live-tools']
         with self.chroot_manager as chroot:
             for pkg in pakages_list:
                 chroot.run_command(f'{self.package_manager} install {pkg} -y')
