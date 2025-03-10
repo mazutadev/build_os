@@ -8,6 +8,7 @@ from modules.command_executor import CommandExecutor
 from modules.storage_manager.usb_manager import USBManager
 from modules.system_builder.system_builder import SystemBuilder
 from modules.storage_manager.copy_manager import CopyManager
+from modules.storage_manager.file_manager import FileManager
 
 
 class StorageManager:
@@ -17,6 +18,7 @@ class StorageManager:
         self.project_root = project_root or self.find_project_root()
         self.build_dir = None
         self.rootfs_path = None
+        self.file_manager = None
         
     def find_project_root(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,18 +28,32 @@ class StorageManager:
             current_dir = os.path.dirname(current_dir)
         raise RuntimeError('Не удалось определить корневую директорию проекта.')
     
+    def _create_file_manager(self):
+        self.file_manager = FileManager(executer=self.executer, console=self.console, 
+                                        project_root=self.project_root, rootfs_path=self.rootfs_path, 
+                                        squashfs_path=self.squashfs_path)
+    
     def create_build_directory(self, distro, release, method):
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
         build_name = f'{distro}_{release}_{date_str}_{method}'
         self.build_dir = os.path.join(self.project_root, 'build', build_name)
         self.rootfs_path = os.path.join(self.build_dir, 'root_fs')
-        self.squashfs_path = os.path.join(self.build_dir, 'suquash')
+        self.squashfs_path = os.path.join(self.build_dir, 'suquashfs')
 
         if not os.path.exists(self.build_dir):
             os.makedirs(self.build_dir)
-            self.console.print(f'[green]Создана директория сборки: {self.build_dir}[/green]')
+            self.console.print(f'[green]Создана директория для сборки RootFs: {self.build_dir}[/green]')
         else:
-            self.console.print(f'[yellow]Директория {self.build_dir} уже существует.[/yellow]')
+            self.console.print(f'[yellow]Директория для RootFs: {self.build_dir} уже существует.[/yellow]')
+
+        if not os.path.exists(self.squashfs_path):
+            self.console.print(f'[green]Создана директория для сборки SquashFs: {self.squashfs_path}[/green]')
+            os.makedirs(self.squashfs_path)
+        else:
+            self.console.print(f'[yellow]Директория для SquashFs: {self.squashfs_path} уже существует.[/yellow]')
+
+        if self.squashfs_path:
+            self._create_file_manager()
 
         return self.build_dir
     

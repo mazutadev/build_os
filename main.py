@@ -29,7 +29,9 @@ def install_system(distro, release, arch, method='clean_install', force_reinstal
             
             build_manager.init_system(interactive=interactive)
             build_manager.system_setup.install_packages()
-            build_manager.system_setup.create_user('admin', '123321', True)
+            build_manager.system_setup.create_user(username='admin', password='123', sudo=True)
+            build_manager.storage_manager.file_manager.make_squashfs_root()
+
 
 if __name__ == "__main__":
     install_system('ubuntu', 'noble', 'amd64', 
