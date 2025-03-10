@@ -22,7 +22,7 @@ def install_system(distro, release, arch, method='clean_install', force_reinstal
     
     if method == 'clean_install':
         if distro == 'ubuntu':
-            build_manager = BuildManager(use_sudo=True, debug=True, distro=distro,
+            build_manager = BuildManager(use_sudo=True, debug=False, distro=distro,
                                         release=release, arch=arch, method=method)
             build_manager.init_workspace()
             build_manager.install_system(method='debootstrap', force_reinstall=force_reinstall)
@@ -31,6 +31,7 @@ def install_system(distro, release, arch, method='clean_install', force_reinstal
             build_manager.system_setup.install_packages()
             build_manager.system_setup.create_user(username='admin', password='123', sudo=True)
             build_manager.storage_manager.file_manager.make_squashfs_root()
+            build_manager.storage_manager._list_disks()
 
 
 if __name__ == "__main__":

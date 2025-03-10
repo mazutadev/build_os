@@ -92,7 +92,7 @@ class StorageManager:
         table.add_column('Размер', justify='right', style='yellow')
         table.add_column('Тип', justify='left', style='cyan')
 
-        for line in output.splitlines():
+        for line in output['stdout'].splitlines():
             cols = line.split()
             if "disk" in cols:
                 table.add_row(f'/dev/{cols[0]}', cols[1], cols[2])
