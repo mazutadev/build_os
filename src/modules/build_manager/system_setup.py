@@ -124,7 +124,10 @@ class SystemSetup:
                         'dmidecode', 'inxi', 'lshw', 'hwinfo', 'lsscsi', 
                         'sg3-utils', 'cpuid', 'msr-tools', 'python3', 
                         'python3-pip', 'python3-venv', 'jq', 'ansible', 
-                        'wireshark', 'tshark', 'neofetch', 'casper', 'live-boot', 'live-tools']
+                        'wireshark', 'tshark', 'neofetch', 'casper', 
+                        'live-boot', 'live-tools', 'grub-efi', 'grub-pc-bin', 
+                        'grub-efi-amd64-bin', 'grub-efi-amd64', 'grub-common', 
+                        'grub2-common']
         with self.chroot_manager as chroot:
             for pkg in pakages_list:
                 chroot.run_command(f'{self.package_manager} install {pkg} -y')

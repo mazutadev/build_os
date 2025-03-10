@@ -12,12 +12,12 @@ from modules.storage_manager.copy_manager import CopyManager
 
 class StorageManager:
     def __init__(self, project_root=None, executer=None, console=None):
+        self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
+        self.console = console or Console()
         self.project_root = project_root or self.find_project_root()
         self.build_dir = None
         self.rootfs_path = None
-        self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
-        self.console = console or Console()
-
+        
     def find_project_root(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         while current_dir != '/':
@@ -31,6 +31,7 @@ class StorageManager:
         build_name = f'{distro}_{release}_{date_str}_{method}'
         self.build_dir = os.path.join(self.project_root, 'build', build_name)
         self.rootfs_path = os.path.join(self.build_dir, 'root_fs')
+        self.squashfs_path = os.path.join(self.build_dir, 'suquash')
 
         if not os.path.exists(self.build_dir):
             os.makedirs(self.build_dir)

@@ -6,6 +6,7 @@ from modules.storage_manager.storage_manager import StorageManager
 from modules.chroot_manager.chroot_manager import ChrootManager
 from modules.build_manager.system_installer import SystemInstaller
 from modules.build_manager.system_setup import SystemSetup
+from modules.storage_manager.file_manager import FileManager
 
 
 class BuildManager:
@@ -15,6 +16,7 @@ class BuildManager:
         self.storage_manager = StorageManager(executer=self.executer)
         self.project_root = None
         self.rootfs_path = None
+        self.build_dir = None
         self.ready_to_setup = False
         self.method = method
         self.distro = distro
@@ -23,8 +25,9 @@ class BuildManager:
         
     def init_workspace(self):
         self.storage_manager.find_project_root()
-        self.storage_manager.create_build_directory(distro=self.distro, release=self.release, 
-                                                    method=self.method)
+
+        self.build_dir = self.storage_manager.create_build_directory(
+            distro=self.distro, release=self.release, method=self.method)
         self.rootfs_path = self.storage_manager.rootfs_path
         self.project_root = self.storage_manager.project_root
         
