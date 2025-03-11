@@ -7,10 +7,10 @@ from rich.table import Table
 from modules.command_executor import CommandExecutor, CommandResult
 
 class USBManager:
-    def __init__(self, usb_mount_point='/mnt/usb', console=None, executer=None):
+    def __init__(self, usb_mount_path='/mnt/usb', console=None, executer=None):
         self.executer = executer if executer else CommandExecutor(use_sudo=True, debug=True)
         self.console = console if console else Console()
-        self._make_usb_mount_point(usb_mount_point=usb_mount_point)
+        self._make_usb_mount_point(usb_mount_path=usb_mount_path)
         self.disk = self._disk_init()
 
     def prepare_usb(self):
@@ -32,9 +32,9 @@ class USBManager:
             return False
         return True
 
-    def _make_usb_mount_point(self, usb_mount_point):
-        self.usb_mount_point = usb_mount_point
-        self.executer.run(f'mkdir -p {self.usb_mount_point}')
+    def _make_usb_mount_point(self, usb_mount_path):
+        self.usb_mount_path = usb_mount_path
+        self.executer.run(f'mkdir -p {self.usb_mount_path}')
 
     def _disk_init(self):
         return input('Введите устройсво (например, /dev/sdb):').strip()
@@ -69,10 +69,10 @@ class USBManager:
         live_usb = f'{self.disk}3'
         efi_part = f'{self.disk}2'
 
-        self.executer.run(f'mount {live_usb} {self.usb_mount_point}')
-        self.executer.run(f'mkdir -p {self.usb_mount_point}/boot/efi')
-        self.executer.run(f'mkdir -p {self.usb_mount_point}/boot/grub')
-        self.executer.run(f'mount {efi_part} {self.usb_mount_point}/boot/efi')
+        self.executer.run(f'mount {live_usb} {self.usb_mount_path}')
+        self.executer.run(f'mkdir -p {self.usb_mount_path}/boot/efi')
+        self.executer.run(f'mkdir -p {self.usb_mount_path}/boot/grub')
+        self.executer.run(f'mount {efi_part} {self.usb_mount_path}/boot/efi')
         self.console.print('[bold green] Флешка успешно смонтирована![/bold green]')
 
     def _format_partitions(self):
@@ -96,8 +96,8 @@ class USBManager:
 
     def copy_to_usb(self, rootfs_path:str):        
         
-        self.console.print(f'[cyan]Копирую систему на флешку {self.usb_mount_point}...[/cyan]')
-        self.executer.run(f'rsync -aAXv --progress {rootfs_path}/ {self.usb_mount_point}/', capture_output=False)
+        self.console.print(f'[cyan]Копирую систему на флешку {self.usb_mount_path}...[/cyan]')
+        self.executer.run(f'rsync -aAXv --progress {rootfs_path}/ {self.usb_mount_path}/', capture_output=False)
 
         self.console.print('[bold green]Система успешно скопирована![/bold green]')
 

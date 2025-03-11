@@ -19,6 +19,7 @@ class StorageManager:
         self.project_root = project_root or self.find_project_root()
         self.build_dir = None
         self.rootfs_path = None
+        self.squashfs_path = None
         self.file_manager = None
         
     def find_project_root(self):
@@ -40,6 +41,8 @@ class StorageManager:
         self.build_dir = os.path.join(self.project_root, 'build', build_name)
         self.rootfs_path = os.path.join(self.build_dir, 'root_fs')
         self.squashfs_path = os.path.join(self.build_dir, 'squashfs')
+        self.boot_dir = os.path.join(self.build_dir, 'boot')
+        self.boot_dir_efi = os.path.join(self.boot_dir, 'efi')
 
         if not os.path.exists(self.build_dir):
             os.makedirs(self.build_dir)
@@ -47,11 +50,16 @@ class StorageManager:
         else:
             self.console.print(f'[yellow]Директория для RootFs: {self.build_dir} уже существует.[/yellow]')
 
+        if not os.path.exists(self.boot_dir_efi):
+            os.makedirs(self.boot_dir_efi)
+            self.console.print(f'[green]Создана директория для сборки EFI: {self.build_dir}[/green]')
+            
         if not os.path.exists(self.squashfs_path):
             self.console.print(f'[green]Создана директория для сборки SquashFs: {self.squashfs_path}[/green]')
             os.makedirs(self.squashfs_path)
         else:
             self.console.print(f'[yellow]Директория для SquashFs: {self.squashfs_path} уже существует.[/yellow]')
+
 
         if self.squashfs_path:
             self._create_file_manager()
@@ -102,21 +110,21 @@ class StorageManager:
 
         self.console.print(table)
     
-    def deploy_system_to_usb(self, mount_point, deploy: bool):
+    def deploy_system_to_usb(self, usb_mount_path, deploy: bool):
         if not self.rootfs_path:
             raise ValueError('Сначала вызови copy_system или create_build_directory!')
         
         self._list_disks()
         disk = input('Введите устройсво (например, /dev/sdb):').strip()
         
-        usb_manager = USBManager(disk, mount_point)
+        usb_manager = USBManager(disk, usb_mount_path)
 
         if deploy:
             if usb_manager.prepare_usb():
                 usb_manager.mount_partition()
                 usb_manager.copy_to_usb(self.rootfs_path)
 
-                system_builder = SystemBuilder(rootfs_path=mount_point)
+                system_builder = SystemBuilder(rootfs_path=usb_mount_path)
 
                 essential_packages = [
                         'grub-efi', 'grub-pc', 'grub-pc-bin',
@@ -125,11 +133,11 @@ class StorageManager:
 
                 system_builder.install_packages(essential_packages)
                 system_builder.install_grub(disk)
-                system_builder.config_grub(mount_point, self.project_root)
+                system_builder.config_grub(usb_mount_path, self.project_root)
                 system_builder.config_fstab()
         else:
             usb_manager.mount_partition()
-            system_builder = SystemBuilder(rootfs_path=mount_point)
+            system_builder = SystemBuilder(rootfs_path=usb_mount_path)
 
             essential_packages = [
                     'grub-efi', 'grub-pc', 'grub-pc-bin',
@@ -138,5 +146,5 @@ class StorageManager:
 
             system_builder.install_packages(essential_packages)
             system_builder.install_grub(disk)
-            system_builder.config_grub(mount_point, self.project_root)
+            system_builder.config_grub(usb_mount_path, self.project_root)
             system_builder.config_fstab()

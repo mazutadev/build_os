@@ -31,10 +31,9 @@ def install_system(distro, release, arch, method='clean_install', force_reinstal
             build_manager.init_system(interactive=interactive)
             build_manager.system_setup.install_packages()
             build_manager.system_setup.create_user(username='admin', password='123', sudo=True)
-            build_manager.storage_manager.file_manager.make_squashfs_root()
 
             build_manager.prepare_usb()
-            
+
 
 def test_func():
     build_manager = BuildManager(use_sudo=True, debug=True, distro='ubuntu',

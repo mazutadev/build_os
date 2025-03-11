@@ -3,6 +3,7 @@ import shutil
 from rich.console import Console
 from modules.command_executor import CommandExecutor
 from modules.chroot_manager.chroot_manager import ChrootManager
+from modules.build_manager.grub_installer import GrubInstaller
 
 class SystemSetup:
     def __init__(self, executer=None, console=None, rootfs_path=None, project_root=None, 
@@ -24,7 +25,8 @@ class SystemSetup:
         
         self.chroot_manager = chroot_manager or ChrootManager(chroot_destination=self.rootfs_path,
                                                                executer=self.executer, console=self.console)
-
+        self.grub_installer: GrubInstaller = None
+        
     def init_system(self, interactive:False):
         if self.distro == 'ubuntu':
             self.package_manager = 'apt'
@@ -84,6 +86,15 @@ class SystemSetup:
         chroot.run_command("apt install -y linux-generic")
         chroot.run_command("update-initramfs -u -k all")
         self.console.print(f'[green]🔄 Ядро установлено в {self.rootfs_path}...[/green]')
+
+    def grub_install(self, disk, usb_mount_path, usb_manager):
+        self.grub_installer = GrubInstaller(console=self.console, 
+                                            executer=self.executer, 
+                                            chroot_manager=self.chroot_manager, 
+                                            disk=disk, usb_mount_path=usb_mount_path, usb_manager=usb_manager)
+        self.grub_installer.install()
+        self.grub_installer.config(project_root=self.project_root)
+
         
     def _install_zsh(self, username, chroot: ChrootManager):
         chroot.run_command(f'{self.package_manager} install zsh -y')

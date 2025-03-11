@@ -8,6 +8,7 @@ from modules.build_manager.system_installer import SystemInstaller
 from modules.build_manager.system_setup import SystemSetup
 from modules.storage_manager.file_manager import FileManager
 from modules.storage_manager.usb_manager import USBManager
+from modules.build_manager.grub_installer import GrubInstaller
 
 
 class BuildManager:
@@ -58,6 +59,14 @@ class BuildManager:
         self.storage_manager._list_disks()
         usb_manager = USBManager(console=self.console, executer=self.executer)
         usb_manager.prepare_usb()
+        usb_manager.umount_partitions()
+
+        usb_mount_path = usb_manager.usb_mount_path
+        disk = usb_manager.disk
+
+        self.system_setup.grub_install(disk=disk, usb_mount_path=usb_mount_path, usb_manager=usb_manager)
         usb_manager.mount_partition()
-        self.storage_manager.file_manager.copy_live_system_to_usb(usb_mount_point=usb_manager.usb_mount_point)
+        self.storage_manager.file_manager.make_squashfs_root()
+        self.storage_manager.file_manager.copy_live_system_to_usb(usb_mount_path=usb_mount_path)
+        
         #usb_manager.umount_partitions()

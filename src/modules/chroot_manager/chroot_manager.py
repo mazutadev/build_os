@@ -5,7 +5,7 @@ from modules.command_executor import CommandExecutor
 class ChrootManager:
     def __init__(self, chroot_destination: str, executer=None, console=None):
         self.destination = chroot_destination
-        self.mount_points = ['/proc', '/sys', '/dev', '/run', '/tmp']
+        self.mount_points = ['/proc', '/sys', '/dev', '/run', '/tmp', '/mnt']
         self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
         self.console = console or Console
 
