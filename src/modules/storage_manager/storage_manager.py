@@ -9,6 +9,7 @@ from modules.storage_manager.usb_manager import USBManager
 from modules.system_builder.system_builder import SystemBuilder
 from modules.storage_manager.copy_manager import CopyManager
 from modules.storage_manager.file_manager import FileManager
+from modules.command_executor import CommandResult
 
 
 class StorageManager:
@@ -81,18 +82,20 @@ class StorageManager:
     
     def _list_disks(self):
         self.console.print('[cyan]Доступные диски:[/cyan]')
-        output = self.executer.run('lsblk -o NAME,SIZE,TYPE,MOUNTPOINT -d -n')
-
-        if not output:
+        try:
+            output: CommandResult = self.executer.run('lsblk -o NAME,SIZE,TYPE,MOUNTPOINT -d -n')
+        except Exception as e:
+            self.console.print(f'[bold yellow]{e}[/bold yellow]')
             self.console.print('[red]Не удалось получить список дисков![/red]')
-            return
+            return            
     
         table = Table(title='Список доступных дисков')
         table.add_column('Устройство', justify='left', style='green')
         table.add_column('Размер', justify='right', style='yellow')
         table.add_column('Тип', justify='left', style='cyan')
 
-        for line in output['stdout'].splitlines():
+
+        for line in output.stdout.splitlines():
             cols = line.split()
             if "disk" in cols:
                 table.add_row(f'/dev/{cols[0]}', cols[1], cols[2])

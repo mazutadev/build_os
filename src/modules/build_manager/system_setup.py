@@ -51,7 +51,7 @@ class SystemSetup:
 
     def _user_exists(self, username, chroot):
         user_exists = chroot.run_command(f'id -u {username}')
-        return user_exists['returncode'] == 0
+        return user_exists.returncode == 0
 
     def create_user(self, username, password, sudo=False):
         with self.chroot_manager as chroot:

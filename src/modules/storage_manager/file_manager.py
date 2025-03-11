@@ -22,7 +22,6 @@ class FileManager:
         if not rootfs_path:
             raise RuntimeError('Не могу определить путь к директории RootFS сборки')
         
-        
     def make_squashfs_root(self):
         if not self.project_root:
             raise RuntimeError('Не могу определить путь к директории проекта')
@@ -37,11 +36,3 @@ class FileManager:
         self.console.print(f'[cyan]Создаю Squashfs из директории: {self.squashfs_path}')
 
         self.executer.run(f'mksquashfs {self.rootfs_path} {self.squashfs_path}/rootfs.squashfs -comp xz -Xbcj x86 -processors $(nproc) -all-root {exclude_flags}', capture_output=False)
-
-    def prepare_usb(self, disk=None, usb_mount_point=None):
-        if not disk:
-            raise RuntimeError('Не указан диск для подготовки к записи системы')
-        if not usb_mount_point:
-            raise RuntimeError('Не указан точка монтирования диска для подготовки к записи системы')
-        
-        usb_manager = USBManager(disk=disk, usb_mount_point=usb_mount_point)

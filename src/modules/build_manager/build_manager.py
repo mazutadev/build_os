@@ -7,6 +7,7 @@ from modules.chroot_manager.chroot_manager import ChrootManager
 from modules.build_manager.system_installer import SystemInstaller
 from modules.build_manager.system_setup import SystemSetup
 from modules.storage_manager.file_manager import FileManager
+from modules.storage_manager.usb_manager import USBManager
 
 
 class BuildManager:
@@ -52,3 +53,10 @@ class BuildManager:
 
     def install_packages(self):
         self.system_setup.install_packages()
+
+    def prepare_usb(self):
+        storage_manager = StorageManager()
+        storage_manager._list_disks()
+        usb_manager = USBManager(console=self.console, executer=self.executer)
+        usb_manager.prepare_usb()
+        #usb_manager.umount_partitions()
