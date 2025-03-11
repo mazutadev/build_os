@@ -39,7 +39,7 @@ class StorageManager:
         build_name = f'{distro}_{release}_{date_str}_{method}'
         self.build_dir = os.path.join(self.project_root, 'build', build_name)
         self.rootfs_path = os.path.join(self.build_dir, 'root_fs')
-        self.squashfs_path = os.path.join(self.build_dir, 'suquashfs')
+        self.squashfs_path = os.path.join(self.build_dir, 'squashfs')
 
         if not os.path.exists(self.build_dir):
             os.makedirs(self.build_dir)

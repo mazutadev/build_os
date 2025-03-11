@@ -55,8 +55,9 @@ class BuildManager:
         self.system_setup.install_packages()
 
     def prepare_usb(self):
-        storage_manager = StorageManager()
-        storage_manager._list_disks()
+        self.storage_manager._list_disks()
         usb_manager = USBManager(console=self.console, executer=self.executer)
         usb_manager.prepare_usb()
+        usb_manager.mount_partition()
+        self.storage_manager.file_manager.copy_live_system_to_usb(usb_mount_point=usb_manager.usb_mount_point)
         #usb_manager.umount_partitions()

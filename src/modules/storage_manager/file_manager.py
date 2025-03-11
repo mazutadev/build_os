@@ -36,3 +36,20 @@ class FileManager:
         self.console.print(f'[cyan]Создаю Squashfs из директории: {self.squashfs_path}')
 
         self.executer.run(f'mksquashfs {self.rootfs_path} {self.squashfs_path}/rootfs.squashfs -comp xz -Xbcj x86 -processors $(nproc) -all-root {exclude_flags}', capture_output=False)
+
+    def copy_live_system_to_usb(self, usb_mount_point):
+
+        boot_dir_path = os.path.join(self.rootfs_path, 'boot')
+        rootfs_squash_path = os.path.join(self.squashfs_path, 'rootfs.squashfs')
+        vmlinuz_path = os.path.join(boot_dir_path,'vmlinuz')
+        initrd_path = os.path.join(boot_dir_path,'initrd.img')
+
+        self.executer.run(f'mkdir -p {usb_mount_point}/live')
+
+        shutil.copy2(rootfs_squash_path, f'{usb_mount_point}/live')
+        shutil.copy2(vmlinuz_path, f'{usb_mount_point}/live')
+        shutil.copy2(initrd_path, f'{usb_mount_point}/live')
+
+        self.console.print(f'[cyan]Копирую систему на флешку {usb_mount_point}...[/cyan]')
+
+        self.console.print('[bold green]Система успешно скопирована![/bold green]')

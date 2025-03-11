@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.insert(0, 'src')
 
 from modules.storage_manager.storage_manager import StorageManager
@@ -32,6 +33,9 @@ def install_system(distro, release, arch, method='clean_install', force_reinstal
             build_manager.system_setup.create_user(username='admin', password='123', sudo=True)
             build_manager.storage_manager.file_manager.make_squashfs_root()
 
+            build_manager.prepare_usb()
+            
+
 def test_func():
     build_manager = BuildManager(use_sudo=True, debug=True, distro='ubuntu',
                                         release='release', arch='arch', method='method')
@@ -39,6 +43,5 @@ def test_func():
 
 
 if __name__ == "__main__":
-    #install_system('ubuntu', 'noble', 'amd64', 
-    #               method='clean_install', force_reinstall=False, interactive=False)
-    test_func()
+    install_system('ubuntu', 'noble', 'amd64', 
+                   method='clean_install', force_reinstall=False, interactive=False)
