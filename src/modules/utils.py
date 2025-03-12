@@ -1,29 +1,33 @@
 from rich.console import Console
+from rich.table import Table
 import os
 import datetime
-from modules.command_executor import CommandExecutor
+from modules.command_executor import CommandExecutor, CommandResult
 
-console = Console()
-executer = CommandExecutor(use_sudo=True, debug=False)
+class Utils:
 
-def get_project_root() -> str:
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    console = Console()
+    executer = CommandExecutor(use_sudo=True, debug=True)
 
-def get_distro_name():
-    try:
-        result = executer.run('lsb_release -isrc', capture_output=True)
-        if result:
-            return result.lower().split()
-        else:
-            return ["unknown"]
+    @classmethod
+    def list_disks(cls):
+        cls.console.print('[cyan]Доступные диски:[/cyan]')
+        try:
+            output: CommandResult = cls.executer.run('lsblk -o NAME,SIZE,TYPE,MOUNTPOINT -d -n')
+        except Exception as e:
+            cls.console.print(f'[bold yellow]{e}[/bold yellow]')
+            cls.console.print('[red]Не удалось получить список дисков![/red]')
+            return            
+    
+        table = Table(title='Список доступных дисков')
+        table.add_column('Устройство', justify='left', style='green')
+        table.add_column('Размер', justify='right', style='yellow')
+        table.add_column('Тип', justify='left', style='cyan')
 
-    except FileNotFoundError as e:
-        if os.path.exists('/etc/os-release'):
-            with open('/etc/os-release') as f:
-                for line in f:
-                    if line.startswith("ID="):
-                        return line.strip().split('=')[1].replace('"', '').lower()
-        return ["unknown"]
 
-def get_current_date() -> str:
-    return datetime.datetime.now().strftime("%Y-%m-%d")
+        for line in output.stdout.splitlines():
+            cols = line.split()
+            if "disk" in cols:
+                table.add_row(f'/dev/{cols[0]}', cols[1], cols[2])
+
+        cls.console.print(table)

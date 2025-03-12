@@ -17,7 +17,6 @@ class SystemInstaller:
         self.distro = distro
         self.release = release
         self.arch = arch
-
         self.method = method
         self.installer = None
         

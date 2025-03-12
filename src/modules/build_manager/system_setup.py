@@ -48,7 +48,7 @@ class SystemSetup:
                 chroot.run_command('update-locale LANG=en_US.UTF-8')
                 chroot.run_command(f'echo "export LC_ALL=en_US.UTF-8" >> {chroot.destination}/etc/environment')
                 chroot.run_command(f'echo "export LANGUAGE=en_US.UTF-8" >> {chroot.destination}/etc/environment')
-                chroot.run_command('echo "overlay" >> /etc/initramfs-tools/modules')
+                chroot.run_command(f'echo "overlay" >> {chroot.destination}/etc/initramfs-tools/modules')
 
                 self._install_kernel(chroot)
 
@@ -79,8 +79,8 @@ class SystemSetup:
             chroot.run_command(f"bash -c 'echo \"{sudoers_line}\" > /etc/sudoers.d/{username}'")
             chroot.run_command(f"chmod 0440 /etc/sudoers.d/{username}")
 
-            #self.console.print('💾 Устанавливаем Zsh и Oh My Zsh...')
-            #self._install_zsh(username, chroot)
+            self.console.print('💾 Устанавливаем Zsh и Oh My Zsh...')
+            self._install_zsh(username, chroot)
 
     def _install_kernel(self, chroot: ChrootManager):
         self.console.print(f'[green]🔄 Устанавливаем Ядро в {self.rootfs_path}...[/green]')
@@ -88,15 +88,6 @@ class SystemSetup:
         chroot.run_command("update-initramfs -u -k all")
         self.console.print(f'[green]🔄 Ядро установлено в {self.rootfs_path}...[/green]')
 
-    def grub_install(self, disk, usb_mount_path, usb_manager):
-        self.grub_installer = GrubInstaller(console=self.console, 
-                                            executer=self.executer, 
-                                            chroot_manager=self.chroot_manager, 
-                                            disk=disk, usb_mount_path=usb_mount_path, usb_manager=usb_manager)
-        self.grub_installer.install()
-        self.grub_installer.config(project_root=self.project_root)
-
-        
     def _install_zsh(self, username, chroot: ChrootManager):
         chroot.run_command(f'{self.package_manager} install zsh -y')
 

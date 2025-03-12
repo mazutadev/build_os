@@ -5,12 +5,14 @@ import time
 from rich.console import Console
 from rich.table import Table
 from modules.command_executor import CommandExecutor, CommandResult
+from modules.utils import Utils
 
 class USBManager:
     def __init__(self, usb_mount_path='/mnt/usb', console=None, executer=None):
         self.executer = executer if executer else CommandExecutor(use_sudo=True, debug=True)
         self.console = console if console else Console()
-        self._make_usb_mount_point(usb_mount_path=usb_mount_path)
+        self.usb_mount_path = self._make_usb_mount_point(usb_mount_path=usb_mount_path)
+        Utils.list_disks()
         self.disk = self._disk_init()
 
     def prepare_usb(self):
@@ -20,7 +22,6 @@ class USBManager:
             self._wipe_usb()
             self._create_partitions()
             self._format_partitions()
-
             self.console.print('[bold green]Флешка успешно подготовлена![/bold green]')
             
             return True
@@ -33,8 +34,8 @@ class USBManager:
         return True
 
     def _make_usb_mount_point(self, usb_mount_path):
-        self.usb_mount_path = usb_mount_path
-        self.executer.run(f'mkdir -p {self.usb_mount_path}')
+        self.executer.run(f'mkdir -p {usb_mount_path}')
+        return usb_mount_path
 
     def _disk_init(self):
         return input('Введите устройсво (например, /dev/sdb):').strip()

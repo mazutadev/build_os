@@ -37,6 +37,9 @@ class FileManager:
 
         self.executer.run(f'mksquashfs {self.rootfs_path} {self.squashfs_path}/filesystem.squashfs -comp xz -Xbcj x86 -processors $(nproc) -all-root', capture_output=False)
 
+    def make_iso_file(self):
+        pass
+
     def copy_live_system_to_usb(self, usb_mount_path):
 
         boot_dir_path = os.path.join(self.rootfs_path, 'boot')
