@@ -30,6 +30,7 @@ class GrubInstaller:
 
             chroot.run_command(f'grub-install --target=x86_64-efi --efi-directory={self.usb_mount_path}/boot/efi --boot-directory={self.usb_mount_path}/boot --removable --recheck')
             chroot.run_command(f'grub-install --target=i386-pc --boot-directory={self.usb_mount_path}/boot --recheck {self.disk}')
+            #self._config_fstab()
             self.usb_manager.umount_partitions()
         self.console.print('[bold green]GRUB установлен![/bold green]')
 
@@ -52,3 +53,15 @@ class GrubInstaller:
         
         self.usb_manager.umount_partitions()
         self.console.print('[bold green]grub.cfg скопированы![/bold green]')
+
+    def _config_fstab(self):
+        self.console.print('[cyan]Настройка fstab...[/cyan]')
+
+        fstab = """
+tmpfs / tmpfs rw,relatime 0 0
+"""
+
+        with open(f'{self.usb_mount_path}/etc/fstab', 'w') as f:
+            f.write(fstab)
+
+        self.console.print('[bold green]fstab настроен[/bold green]')

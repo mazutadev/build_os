@@ -48,6 +48,7 @@ class SystemSetup:
                 chroot.run_command('update-locale LANG=en_US.UTF-8')
                 chroot.run_command(f'echo "export LC_ALL=en_US.UTF-8" >> {chroot.destination}/etc/environment')
                 chroot.run_command(f'echo "export LANGUAGE=en_US.UTF-8" >> {chroot.destination}/etc/environment')
+                chroot.run_command('echo "overlay" >> /etc/initramfs-tools/modules')
 
                 self._install_kernel(chroot)
 

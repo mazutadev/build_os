@@ -35,7 +35,7 @@ class FileManager:
 
         self.console.print(f'[cyan]Создаю Squashfs из директории: {self.squashfs_path}')
 
-        self.executer.run(f'mksquashfs {self.rootfs_path} {self.squashfs_path}/filesystem.squashfs -comp xz -Xbcj x86 -processors $(nproc) -all-root {exclude_flags}', capture_output=False)
+        self.executer.run(f'mksquashfs {self.rootfs_path} {self.squashfs_path}/filesystem.squashfs -comp xz -Xbcj x86 -processors $(nproc) -all-root', capture_output=False)
 
     def copy_live_system_to_usb(self, usb_mount_path):
 
