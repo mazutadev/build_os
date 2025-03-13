@@ -31,7 +31,7 @@ class StorageManager:
     def _create_file_manager(self):
         self.file_manager = FileManager(executer=self.executer, console=self.console, 
                                         project_root=self.project_root, rootfs_path=self.rootfs_path, 
-                                        squashfs_path=self.squashfs_path)
+                                        squashfs_path=self.squashfs_path, live_iso_path=self.live_os_path)
     
     def _create_build_directory(self):
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')

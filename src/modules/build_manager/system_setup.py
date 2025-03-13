@@ -79,8 +79,8 @@ class SystemSetup:
             chroot.run_command(f"bash -c 'echo \"{sudoers_line}\" > /etc/sudoers.d/{username}'")
             chroot.run_command(f"chmod 0440 /etc/sudoers.d/{username}")
 
-            self.console.print('💾 Устанавливаем Zsh и Oh My Zsh...')
-            self._install_zsh(username, chroot)
+            #self.console.print('💾 Устанавливаем Zsh и Oh My Zsh...')
+            #self._install_zsh(username, chroot)
 
     def _install_kernel(self, chroot: ChrootManager):
         self.console.print(f'[green]🔄 Устанавливаем Ядро в {self.rootfs_path}...[/green]')
