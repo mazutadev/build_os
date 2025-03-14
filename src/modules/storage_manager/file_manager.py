@@ -45,9 +45,56 @@ class FileManager:
         self.executer.run(f'mksquashfs {self.rootfs_path} {self.squashfs_path}/filesystem.squashfs -comp xz -Xbcj x86 -processors $(nproc) -all-root', capture_output=False)
 
     def make_iso_file(self):
+        bios_boot = os.path.join(self.live_iso_path, 'boot/grub/i386-pc')
+        uefi_boot = os.path.join(self.live_iso_path, 'EFI/BOOT')
+
+        os.makedirs(bios_boot, exist_ok=True)
+        os.makedirs(uefi_boot, exist_ok=True)
+
+        grub_config_content = f'''
+set timeout=5
+set default=0
+
+menuentry "Live System" {{
+    linux /live/vmlinuz boot=live
+    initrd /live/initrd.img
+        }}
+        '''
+
+        uefi_grub_cfg = os.path.join(uefi_boot, 'grub.cfg')
+        with open(uefi_grub_cfg, 'w') as grub_file:
+            grub_file.write(grub_config_content)
+
+        grub_config_path = os.path.join(self.live_iso_path, 'boot/grub/grub.cfg')
+        with open(grub_config_path, 'w') as grub_file:
+            grub_file.write(grub_config_content)
+
         shutil.copy2(self.rootfs_squash_path, f'{self.live_iso_path}/live')
         shutil.copy2(self.vmlinuz_path, f'{self.live_iso_path}/live')
         shutil.copy2(self.initrd_path, f'{self.live_iso_path}/live')
+
+        self.executer.run(f'grub-mkimage -o {os.path.join(uefi_boot, "BOOTx64.EFI")} -O '
+                  'x86_64-efi --prefix=/boot/grub '
+                  'iso9660 part_gpt part_msdos ext2 normal linux search search_label search_fs_uuid search_fs_file '
+                  'gfxterm gfxmenu all_video efi_gop efi_uga')
+        
+        bios_img = os.path.join(bios_boot, 'eltorito.img')
+        self.executer.run(f'grub-mkimage -o {bios_img} -O i386-pc --prefix=/boot/grub '
+                  'biosdisk iso9660 part_msdos ext2 normal linux search '
+                  'search_fs_uuid search_fs_file multiboot')
+        
+        self.executer.run(f'xorriso -as mkisofs '
+                  '-iso-level 3 -full-iso9660-filenames '
+                  '-volid "LIVE_SYSTEM" '
+                  '-eltorito-boot boot/grub/i386-pc/eltorito.img '
+                  '-no-emul-boot -boot-load-size 4 -boot-info-table '
+                  '-eltorito-platform x86 '
+                  '-eltorito-alt-boot '
+                  '-eltorito-platform efi --efi-boot EFI/BOOT/BOOTx64.EFI '
+                  '-no-emul-boot '
+                  '-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin '
+                  '-partition_offset 16 '
+                  f'-o {self.live_iso_path}/live_system.iso {self.live_iso_path}')
 
     def copy_live_system_to_usb(self, usb_mount_path):
 

@@ -16,10 +16,11 @@ def install_system(distro, release, arch, method='clean_install', force_reinstal
             build_manager.install_system(method='debootstrap', force_reinstall=force_reinstall)
             
             build_manager.init_system(interactive=interactive)
-            build_manager.system_setup.install_packages()
-            build_manager.system_setup.create_user(username='admin', password='123', sudo=True)
+            #build_manager.system_setup.install_packages()
+            #build_manager.system_setup.create_user(username='admin', password='123', sudo=True)
 
-            build_manager.prepare_usb()
+            #build_manager.prepare_usb()
+            build_manager.prepare_pxe()
 
 
 def test_func():

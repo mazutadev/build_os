@@ -57,6 +57,10 @@ class BuildManager:
     def install_packages(self):
         self.system_setup.install_packages()
 
+    def prepare_pxe(self):
+        #self.storage_manager.file_manager.make_squashfs_root()
+        self.storage_manager.file_manager.make_iso_file()
+
     def prepare_usb(self):
         self.usb_manager = USBManager(console=self.console, executer=self.executer)
         self.usb_manager.prepare_usb()
