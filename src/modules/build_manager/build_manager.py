@@ -49,7 +49,7 @@ class BuildManager:
         self.system_setup = SystemSetup(executer=self.executer, console=self.console, 
                                         rootfs_path=self.rootfs_path, project_root=self.project_root, 
                                         chroot_manager=self.chroot_manager, distro=self.distro, release=self.release, 
-                                        arch=self.arch)
+                                        arch=self.arch, hostname='PXE-OS', timezone='Europe/Moscow')
         
         if self.ready_to_setup:
             self.system_setup.init_system(interactive=interactive)
@@ -58,7 +58,7 @@ class BuildManager:
         self.system_setup.install_packages()
 
     def prepare_pxe(self):
-        #self.storage_manager.file_manager.make_squashfs_root()
+        self.storage_manager.file_manager.make_squashfs_root()
         self.storage_manager.file_manager.make_iso_file()
 
     def prepare_usb(self):
