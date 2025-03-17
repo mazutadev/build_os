@@ -28,6 +28,8 @@ class FileManager:
         self.rootfs_squash_path = os.path.join(self.squashfs_path, 'filesystem.squashfs')
         self.vmlinuz_path = vmlinuz_path = os.path.join(self.boot_dir_path,'vmlinuz')
         self.initrd_path = os.path.join(self.boot_dir_path,'initrd.img')
+        self.grub_i386_path = os.path.join(self.rootfs_path, '/usr/lib/grub/i386-pc')
+        self.grub_x86_64_efi = os.path.join(self.rootfs_path, '/usr/lib/grub/x86_64-efi')
         
     def make_squashfs_root(self):
         if not self.project_root:
@@ -51,50 +53,35 @@ class FileManager:
         os.makedirs(bios_boot, exist_ok=True)
         os.makedirs(uefi_boot, exist_ok=True)
 
-        grub_config_content = f'''
+        # 📌 Создаем grub.cfg для BIOS и UEFI
+        grub_config_content = '''
 set timeout=5
 set default=0
 
-menuentry "Live System" {{
-    linux /live/vmlinuz boot=live
+menuentry "Live System" {
+    linux /live/vmlinuz boot=live toram
     initrd /live/initrd.img
-        }}
-        '''
+}
+'''
 
-        uefi_grub_cfg = os.path.join(uefi_boot, 'grub.cfg')
-        with open(uefi_grub_cfg, 'w') as grub_file:
-            grub_file.write(grub_config_content)
+        for cfg_path in [os.path.join(uefi_boot, 'grub.cfg'), os.path.join(self.live_iso_path, 'boot/grub/grub.cfg')]:
+            with open(cfg_path, 'w') as grub_file:
+                grub_file.write(grub_config_content)
 
-        grub_config_path = os.path.join(self.live_iso_path, 'boot/grub/grub.cfg')
-        with open(grub_config_path, 'w') as grub_file:
-            grub_file.write(grub_config_content)
+        # 📌 Копируем файлы системы
+        os.makedirs(f'{self.live_iso_path}/live', exist_ok=True)
+        shutil.copy2(self.rootfs_squash_path, f'{self.live_iso_path}/live/filesystem.squashfs')
+        shutil.copy2(self.vmlinuz_path, f'{self.live_iso_path}/live/vmlinuz')
+        shutil.copy2(self.initrd_path, f'{self.live_iso_path}/live/initrd.img')
 
-        shutil.copy2(self.rootfs_squash_path, f'{self.live_iso_path}/live')
-        shutil.copy2(self.vmlinuz_path, f'{self.live_iso_path}/live')
-        shutil.copy2(self.initrd_path, f'{self.live_iso_path}/live')
+        self.executer.run(f'cp {self.grub_i386_path}/* {self.live_iso_path}/boot/grub/i386-pc/')
 
-        self.executer.run(f'grub-mkimage -o {os.path.join(uefi_boot, "BOOTx64.EFI")} -O '
-                  'x86_64-efi --prefix=/boot/grub '
-                  'iso9660 part_gpt part_msdos ext2 normal linux search search_label search_fs_uuid search_fs_file '
-                  'gfxterm gfxmenu all_video efi_gop efi_uga')
-        
-        bios_img = os.path.join(bios_boot, 'eltorito.img')
-        self.executer.run(f'grub-mkimage -o {bios_img} -O i386-pc --prefix=/boot/grub '
-                  'biosdisk iso9660 part_msdos ext2 normal linux search '
-                  'search_fs_uuid search_fs_file multiboot')
-        
-        self.executer.run(f'xorriso -as mkisofs '
-                  '-iso-level 3 -full-iso9660-filenames '
-                  '-volid "LIVE_SYSTEM" '
-                  '-eltorito-boot boot/grub/i386-pc/eltorito.img '
-                  '-no-emul-boot -boot-load-size 4 -boot-info-table '
-                  '-eltorito-platform x86 '
-                  '-eltorito-alt-boot '
-                  '-eltorito-platform efi --efi-boot EFI/BOOT/BOOTx64.EFI '
-                  '-no-emul-boot '
-                  '-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin '
-                  '-partition_offset 16 '
-                  f'-o {self.live_iso_path}/live_system.iso {self.live_iso_path}')
+        # 📌 Генерируем UEFI-загрузчик
+        self.executer.run(f'grub-mkimage -o {uefi_boot}/BOOTX64.EFI --format=x86_64-efi --prefix="/boot/grub" part_gpt part_msdos fat iso9660 normal linux configfile search search_fs_file echo test all_video gfxterm font terminal')
+
+        # 📌 Генерируем ISO
+        self.executer.run(f'grub-mkrescue -o {self.live_iso_path}/livecd.iso {self.live_iso_path} --xorriso=/usr/bin/xorriso --grub-mkimage=/usr/bin/grub-mkimage --modules="linux normal iso9660 search search_label search_fs_uuid search_fs_file multiboot"')
+
 
     def copy_live_system_to_usb(self, usb_mount_path):
 

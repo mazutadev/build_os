@@ -53,7 +53,7 @@ class StorageManager:
 
         # Специальные поддиректории для live_iso
         if os.path.exists(directories['live_iso']):
-            for subdir in ['live', 'isolinux', 'boot/grub', 'EFI']:
+            for subdir in ['live', 'boot/grub', 'EFI']:
                 if not os.path.exists(os.path.join(directories['live_iso'], subdir)):
                     os.makedirs(os.path.join(directories['live_iso'], subdir))
                     self.console.print(f'[green]Созданы поддиректории Live ISO.[/green]')
