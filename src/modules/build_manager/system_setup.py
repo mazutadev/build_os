@@ -186,6 +186,7 @@ class SystemSetup:
     def _set_fonts(self, chroot: ChrootManager):
         fonts_host_path = '/usr/share/consolefonts'
         font_rootfs_path = os.path.join(self.rootfs_path, 'usr/share/consolefonts')
+        keyboard_config = os.path.join(self.rootfs_path, 'etc/default/keyboard')
 
         self.console.print(font_rootfs_path)
         self.console.print(f'{self.rootfs_path} - Директория проекта')
@@ -195,5 +196,16 @@ class SystemSetup:
         except Exception as e:
             self.console.print(f'{e}')
 
-        chroot.run_command(f'localectl set-keymap us,ru')
-        chroot.run_command(f'localectl set-x11-keymap us,ru pc105 grp:alt_shift_toggle')
+        chroot.run_command(f"sed -i 's/XKBLAYOUT=.*/XKBLAYOUT=\"us,ru\"/' /etc/default/keyboard")
+        chroot.run_command(f"sed -i 's/XKBOPTIONS=.*/XKBOPTIONS=\"grp:alt_shift_toggle\"/' /etc/default/keyboard")
+        chroot.run_command("dpkg-reconfigure -f noninteractive keyboard-configuration")
+
+        console_setup = os.path.join(self.rootfs_path, 'etc/default/console-setup')
+        with open(console_setup, 'w') as f:
+            f.write("""ACTIVE_CONSOLES="/dev/tty[1-6]"
+CHARMAP="UTF-8"
+CODESET="CyrSlav"
+FONTFACE="VGA"
+FONTSIZE="14"
+""")
+        chroot.run_command("setfont CyrSlav-VGA14.psf.gz")
