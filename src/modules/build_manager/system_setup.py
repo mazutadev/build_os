@@ -4,34 +4,29 @@ from rich.console import Console
 from modules.command_executor import CommandExecutor
 from modules.chroot_manager.chroot_manager import ChrootManager
 from modules.build_manager.grub_installer import GrubInstaller
+from core.di import DIContainer
+from core.app_config import AppConfig
 
 class SystemSetup:
-    def __init__(self, executer=None, console=None, rootfs_path=None, project_root=None, 
-                 chroot_manager=None, distro=None, release=None, arch=None, hostname=None,
-                 timezone=None):
+    def __init__(self,hostname=None, timezone=None):
         
-        self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
-        self.console = console or Console()
-        if not project_root:
-            raise RuntimeError('Не могу получить путь корневой директории проекта.')
-        if not rootfs_path:
-            raise RuntimeError('Не могу получить путь к rootfs устанавливаемой системы')
-        
-        self.project_root = project_root
-        self.rootfs_path = rootfs_path
-        self.distro = distro
-        self.release = release
-        self.arch = arch
+        self.executer = DIContainer.resolve('executer')
+        self.console = DIContainer.resolve('console')
+
+        self.project_root = AppConfig.get_storage_dir('project_root')
+        self.rootfs_path = AppConfig.get_storage_dir('rootfs_path')
+        self.distro = AppConfig.get_project_meta('distro')
+        self.release = AppConfig.get_project_meta('release')
+        self.arch = AppConfig.get_project_meta('arch')
         self.hostname = hostname
         self.timezone = timezone
         
-        self.chroot_manager = chroot_manager or ChrootManager(chroot_destination=self.rootfs_path,
-                                                               executer=self.executer, console=self.console)
+        self.chroot_manager = DIContainer.resolve('chroot_manager')
         self.grub_installer: GrubInstaller = None
         
-    def init_system(self, interactive:False):
+    def init_system(self):
         if self.distro == 'ubuntu':
-            self.package_manager = 'apt'
+            self.package_manager = AppConfig.get_project_meta('package_manager')
 
             self._set_mirrors()
             self._set_hostname()

@@ -3,30 +3,25 @@ import shutil
 from rich.console import Console
 
 from modules.command_executor import CommandExecutor
+from core.di import DIContainer
+from core.app_config import AppConfig
 
 class FileManager:
-    def __init__(self, executer: CommandExecutor = None, 
-                 console: Console = None, project_root: str = None, 
-                 rootfs_path: str = None, squashfs_path = None, live_iso_path=None):
-        self.executer = executer if executer else CommandExecutor(use_sudo=True, debug=True)
-        self.console = console if console else Console()
-        self.project_root = project_root
-        self.rootfs_path = rootfs_path
-        self.squashfs_path = squashfs_path
-        self.live_iso_path = live_iso_path
+    def __init__(self):
+        self.executer = DIContainer.resolve('executer')
+        self.console = DIContainer.resolve('console')
+        self.project_root = AppConfig.get_storage_dir('project_root')
+        self.rootfs_path = AppConfig.get_storage_dir('rootfs_path')
+        self.squashfs_path = AppConfig.get_storage_dir('squashfs_path')
+        self.live_os_path = AppConfig.get_storage_dir('live_os_path')
         self.usb_manager = None
-
-        if not project_root:
-            raise RuntimeError('Не могу определить путь к директории проекта')
-        if not rootfs_path:
-            raise RuntimeError('Не могу определить путь к директории RootFS сборки')
         
         self._find_files_paths()
         
     def _find_files_paths(self):
         self.boot_dir_path = os.path.join(self.rootfs_path, 'boot')
         self.rootfs_squash_path = os.path.join(self.squashfs_path, 'filesystem.squashfs')
-        self.vmlinuz_path = vmlinuz_path = os.path.join(self.boot_dir_path,'vmlinuz')
+        self.vmlinuz_path = os.path.join(self.boot_dir_path,'vmlinuz')
         self.initrd_path = os.path.join(self.boot_dir_path,'initrd.img')
         self.grub_i386_path = os.path.join(self.rootfs_path, '/usr/lib/grub/i386-pc')
         self.grub_x86_64_efi = os.path.join(self.rootfs_path, '/usr/lib/grub/x86_64-efi')
@@ -47,11 +42,14 @@ class FileManager:
         self.executer.run(f'mksquashfs {self.rootfs_path} {self.squashfs_path}/filesystem.squashfs -comp xz -Xbcj x86 -processors $(nproc) -all-root', capture_output=False)
 
     def make_iso_file(self):
-        bios_boot = os.path.join(self.live_iso_path, 'boot/grub/i386-pc')
-        uefi_boot = os.path.join(self.live_iso_path, 'EFI/BOOT')
+        bios_boot_live = os.path.join(self.live_os_path, 'boot/grub/i386-pc')
+        uefi_boot_live = os.path.join(self.live_os_path, 'EFI/BOOT')
 
-        os.makedirs(bios_boot, exist_ok=True)
-        os.makedirs(uefi_boot, exist_ok=True)
+        os.makedirs(bios_boot_live, exist_ok=True)
+        os.makedirs(uefi_boot_live, exist_ok=True)
+
+        AppConfig.set_storage_dir('bios_boot_live', bios_boot_live)
+        AppConfig.set_storage_dir('uefi_boot_live', uefi_boot_live)
 
         # 📌 Создаем grub.cfg для BIOS и UEFI
         grub_config_content = '''
@@ -64,23 +62,23 @@ menuentry "Live System" {
 }
 '''
 
-        for cfg_path in [os.path.join(uefi_boot, 'grub.cfg'), os.path.join(self.live_iso_path, 'boot/grub/grub.cfg')]:
+        for cfg_path in [os.path.join(uefi_boot_live, 'grub.cfg'), os.path.join(self.live_os_path, 'boot/grub/grub.cfg')]:
             with open(cfg_path, 'w') as grub_file:
                 grub_file.write(grub_config_content)
 
         # 📌 Копируем файлы системы
-        os.makedirs(f'{self.live_iso_path}/live', exist_ok=True)
-        shutil.copy2(self.rootfs_squash_path, f'{self.live_iso_path}/live/filesystem.squashfs')
-        shutil.copy2(self.vmlinuz_path, f'{self.live_iso_path}/live/vmlinuz')
-        shutil.copy2(self.initrd_path, f'{self.live_iso_path}/live/initrd.img')
+        os.makedirs(f'{self.live_os_path}/live', exist_ok=True)
+        shutil.copy2(self.rootfs_squash_path, f'{self.live_os_path}/live/filesystem.squashfs')
+        shutil.copy2(self.vmlinuz_path, f'{self.live_os_path}/live/vmlinuz')
+        shutil.copy2(self.initrd_path, f'{self.live_os_path}/live/initrd.img')
 
-        self.executer.run(f'cp {self.grub_i386_path}/* {self.live_iso_path}/boot/grub/i386-pc/')
+        self.executer.run(f'cp {self.grub_i386_path}/* {self.live_os_path}/boot/grub/i386-pc/')
 
         # 📌 Генерируем UEFI-загрузчик
-        self.executer.run(f'grub-mkimage -o {uefi_boot}/BOOTX64.EFI --format=x86_64-efi --prefix="/boot/grub" part_gpt part_msdos fat iso9660 normal linux configfile search search_fs_file echo test all_video gfxterm font terminal')
+        self.executer.run(f'grub-mkimage -o {uefi_boot_live}/BOOTX64.EFI --format=x86_64-efi --prefix="/boot/grub" part_gpt part_msdos fat iso9660 normal linux configfile search search_fs_file echo test all_video gfxterm font terminal')
 
         # 📌 Генерируем ISO
-        self.executer.run(f'grub-mkrescue -o {self.live_iso_path}/livecd.iso {self.live_iso_path} --xorriso=/usr/bin/xorriso --grub-mkimage=/usr/bin/grub-mkimage --modules="linux normal iso9660 search search_label search_fs_uuid search_fs_file multiboot"')
+        self.executer.run(f'grub-mkrescue -o {self.live_os_path}/livecd.iso {self.live_os_path} --xorriso=/usr/bin/xorriso --grub-mkimage=/usr/bin/grub-mkimage --modules="linux normal iso9660 search search_label search_fs_uuid search_fs_file multiboot"')
 
 
     def copy_live_system_to_usb(self, usb_mount_path):

@@ -1,23 +1,17 @@
 import os
-from rich.console import Console
-from modules.command_executor import CommandExecutor
+from core.di import DIContainer
+from core.app_config import AppConfig
 
 class DebootStrapInstaller:
-    def __init__(self, distro, release, arch, console=None, 
-                 executer=None, project_root=None, rootfs_path=None):
-        self.console = console or Console()
-        self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
-
-        if not project_root:
-            raise RuntimeError('Не могу получить путь корневой директории проекта.')
-        if not rootfs_path:
-            raise RuntimeError('Не могу получить путь к rootfs устанавливаемой системы')
+    def __init__(self):
+        self.console = DIContainer.resolve('console')
+        self.executer = DIContainer.resolve('executer')
         
-        self.project_root = project_root
-        self.rootfs_path = rootfs_path
-        self.distro = distro
-        self.release = release
-        self.arch = arch
+        self.project_root = AppConfig.get_storage_dir('project_root')
+        self.rootfs_path = AppConfig.get_storage_dir('rootfs_path')
+        self.distro = AppConfig.get_project_meta('distro')
+        self.release = AppConfig.get_project_meta('release')
+        self.arch = AppConfig.get_project_meta('arch')
 
         self.console.print('[cyan]Проверка debootstrap...[/cyan]')
         self.executer.run('dpkg -s debootstrap || apt install -y debootstrap', capture_output=False)
@@ -31,11 +25,11 @@ class DebootStrapInstaller:
         
         return os.path.exists(os_release_file)
 
-    def install(self, force_reinstall=False):
+    def install(self):
         if self._is_system_installed():
             self.console.print(f'[bold yellow]Система уже установлена в {self.rootfs_path}[/bold yellow]')
 
-            if not force_reinstall:
+            if not AppConfig.get_project_meta('force_reinstall'):
                 self.console.print('[bold green]Переход к настройке существующей системы...[/bold green]')
                 return True
             self.console.print('[bold red]Перезаписываю систему![/bold red]')

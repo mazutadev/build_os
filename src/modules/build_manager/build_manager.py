@@ -1,58 +1,47 @@
 import os
 import datetime
-from rich.console import Console
-from modules.command_executor import CommandExecutor
 from modules.storage_manager.storage_manager import StorageManager
 from modules.chroot_manager.chroot_manager import ChrootManager
 from modules.build_manager.system_installer import SystemInstaller
 from modules.build_manager.system_setup import SystemSetup
-from modules.storage_manager.file_manager import FileManager
 from modules.storage_manager.usb_manager import USBManager
 from modules.build_manager.grub_installer import GrubInstaller
-from modules.utils import Utils
+from core.app_config import AppConfig
+from core.di import DIContainer
 
 
 class BuildManager:
-    def __init__(self, distro, release, arch, method, use_sudo=True, debug=True):
-        self.console = Console()
-        self.executer = CommandExecutor(use_sudo, debug)
-        self.method = method
-        self.distro = distro
-        self.release = release
-        self.arch = arch
+    def __init__(self):
+        self.console = DIContainer.resolve('console')
+        self.executer = DIContainer.resolve('executer')
+        self.method = AppConfig.get_project_meta('method')
+        self.distro = AppConfig.get_project_meta('distro')
+        self.release = AppConfig.get_project_meta('release')
+        self.arch = AppConfig.get_project_meta('arch')
         self.ready_to_setup = False
         self.build_dir = None
         self.usb_manager = None
         self.grub_installer = None
         
-        self.storage_manager: StorageManager = StorageManager(executer=self.executer, 
-                                                              console=self.console, distro=distro, 
-                                                              release=release, method=method)
+        self.storage_manager: StorageManager = StorageManager()
         
-        self.rootfs_path = self.storage_manager.rootfs_path
-        self.project_root = self.storage_manager.project_root
-        
-    def install_system(self, method=None, force_reinstall=False):
+    def install_system(self):
         try:
-            self.installer = SystemInstaller(method=method, executer=self.executer, console=self.console, 
-                                            project_root=self.project_root, rootfs_path=self.rootfs_path, 
-                                            distro=self.distro, release=self.release, arch=self.arch)
+            self.installer = SystemInstaller()
             
-            self.ready_to_setup = self.installer.install(force_reinstall=force_reinstall)
+            self.ready_to_setup = self.installer.install()
 
         except Exception as e:
-            self.console.print(f'[bold red]При установке системы методом: {method} произошла ошибка: {e}[/bold red]')
+            self.console.print(f'[bold red]При установке системы методом: {AppConfig.get_project_meta('installer')} произошла ошибка: {e}[/bold red]')
             return
 
-    def init_system(self, interactive):
-        self.chroot_manager = ChrootManager(executer=self.executer, console=self.console, chroot_destination=self.rootfs_path)
-        self.system_setup = SystemSetup(executer=self.executer, console=self.console, 
-                                        rootfs_path=self.rootfs_path, project_root=self.project_root, 
-                                        chroot_manager=self.chroot_manager, distro=self.distro, release=self.release, 
-                                        arch=self.arch, hostname='PXE-OS', timezone='Europe/Moscow')
+    def init_system(self):
+        self.chroot_manager = ChrootManager()
+        DIContainer.register('chroot_manager', self.chroot_manager)
+        self.system_setup = SystemSetup(hostname='PXE-OS', timezone='Europe/Moscow')
         
         if self.ready_to_setup:
-            self.system_setup.init_system(interactive=interactive)
+            self.system_setup.init_system()
 
     def install_packages(self):
         self.system_setup.install_packages()

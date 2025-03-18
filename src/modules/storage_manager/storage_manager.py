@@ -3,40 +3,35 @@ import datetime
 from rich.console import Console
 from modules.command_executor import CommandExecutor, CommandResult
 from modules.storage_manager.file_manager import FileManager
+from core.app_config import AppConfig
+from core.di import DIContainer
 
 
 class StorageManager:
-    def __init__(self, project_root=None, executer=None, 
-                 console=None, distro=None, release=None, method=None):
-        self.executer = executer or CommandExecutor(use_sudo=True, debug=True)
-        self.console = console or Console()
-        self.project_root = project_root or self._find_project_root()
-        self.distro = distro
-        self.release = release
-        self.method = method
+    def __init__(self):
+        self.executer = DIContainer.resolve('executer')
+        self.console = DIContainer.resolve('console')
+        self.project_root = AppConfig.get_storage_dir('project_root')
+        self.distro = AppConfig.get_project_meta('distro')
+        self.release = AppConfig.get_project_meta('release')
+        self.method = AppConfig.get_project_meta('method')
         self.build_dir = None
         self.rootfs_path = None
         self.squashfs_path = None
         self.file_manager = None
         self._create_build_directory()
-        
-    def _find_project_root(self):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        while current_dir != '/':
-            if os.path.exists(os.path.join(current_dir, 'main.py')):
-                return current_dir
-            current_dir = os.path.dirname(current_dir)
-        raise RuntimeError('Не удалось определить корневую директорию проекта.')
-    
+            
     def _create_file_manager(self):
-        self.file_manager = FileManager(executer=self.executer, console=self.console, 
-                                        project_root=self.project_root, rootfs_path=self.rootfs_path, 
-                                        squashfs_path=self.squashfs_path, live_iso_path=self.live_os_path)
+        self.file_manager = FileManager()
+        DIContainer.register('file_manager', self.file_manager)
     
     def _create_build_directory(self):
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
+        AppConfig.set_project_meta('build_date', date_str)
         build_name = f'{self.distro}_{self.release}_{date_str}_{self.method}'
+        AppConfig.set_project_meta('build_name', build_name)
         self.build_dir = os.path.join(self.project_root, 'build', build_name)
+        AppConfig.set_storage_dir('build_dir', self.build_dir)
 
         # Определяем нужные директории
         directories = {
@@ -59,10 +54,17 @@ class StorageManager:
                     self.console.print(f'[green]Созданы поддиректории Live ISO.[/green]')
 
         self.rootfs_path = directories['root_fs']
+        AppConfig.set_storage_dir('rootfs_path', self.rootfs_path)
+
         self.squashfs_path = directories['squashfs']
+        AppConfig.set_storage_dir('squashfs_path', self.squashfs_path)
+        
         self.live_os_path = directories['live_iso']
+        AppConfig.set_storage_dir('live_os_path', self.live_os_path)
         self.boot_dir = directories['boot']
+        AppConfig.set_storage_dir('boot_dir', self.boot_dir)
         self.boot_dir_efi = directories['boot_efi']
+        AppConfig.set_storage_dir('boot_dir_efi', self.boot_dir_efi)
 
         if self.squashfs_path:
             self._create_file_manager()

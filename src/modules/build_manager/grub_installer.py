@@ -4,16 +4,15 @@ from rich.console import Console
 from modules.command_executor import CommandResult, CommandExecutor
 from modules.chroot_manager.chroot_manager import ChrootManager
 from modules.storage_manager.usb_manager import USBManager
+from core.di import DIContainer
+from core.app_config import AppConfig
 
 class GrubInstaller:
-    def __init__(self, usb_manager, console=None, executer=None, chroot_manager: ChrootManager=None):
-        self.executer = executer if executer else CommandExecutor(use_sudo=True, debug=True)
-        self.console = console if console else Console()
-        self.chroot_manager = chroot_manager
-        self.usb_manager: USBManager = usb_manager
-
-        if not chroot_manager:
-            raise RuntimeError('Не определен объект ChrootManager()')
+    def __init__(self):
+        self.executer = DIContainer.resolve('executer')
+        self.console = DIContainer.resolve('console')
+        self.chroot_manager = DIContainer.resolve('chroot_manager')
+        self.usb_manager: USBManager = DIContainer.resolve('usb_manager')
         
     def install(self):
         pakages = ['grub-efi', 'grub-pc-bin', 'grub-efi-amd64-bin',
