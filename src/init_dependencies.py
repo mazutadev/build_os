@@ -24,6 +24,7 @@ def _init_dependencies():
 
 def _init_storage():
      AppConfig.storage.project_root = _find_project_root()
+     AppConfig.load_packages()
 
 def init_app():
      _init_storage()

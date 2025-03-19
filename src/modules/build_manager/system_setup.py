@@ -97,40 +97,18 @@ class SystemSetup:
         self.console.print(f'[green]✅ Пользователь {username} успешно настроен с Oh My Zsh![/green]')
 
     def install_packages(self):
-        packages_list = ['nano', 'curl', 'wget', 'vim', 
-                        'rsync', 'unzip', 'git', 'gnupg2', 
-                        'htop', 'btop', 'screen', 'tmux', 
-                        'psmisc', 'pciutils', 'usbutils', 'lsof', 
-                        'strace', 'bash-completion', 'locales', 
-                        'tzdata', 'man-db', 'less', 'net-tools', 
-                        'iproute2', 'iputils-ping', 'dnsutils', 
-                        'traceroute', 'mtr', 'nmap', 'tcpdump', 
-                        'ethtool', 'socat', 'ncdu', 'nload', 
-                        'iftop', 'iperf3', 'whois', 'lm-sensors', 
-                        'smartmontools', 'iotop', 'sysstat', 
-                        'stress', 'atop', 'glances', 
-                        'parted', 'fdisk', 'gdisk', 'btrfs-progs', 
-                        'xfsprogs', 'e2fsprogs', 'f2fs-tools', 'exfatprogs', 
-                        'ntfs-3g', 'dosfstools', 'lvm2', 'mdadm', 
-                        'cryptsetup', 'nvme-cli', 'memtester', 'fio',
-                        'stress-ng', 'ipmitool',
-                        'dmidecode', 'inxi', 'lshw', 'hwinfo', 'lsscsi', 
-                        'sg3-utils', 'cpuid', 'msr-tools', 'python3', 
-                        'python3-pip', 'python3-venv', 'jq', 'ansible', 
-                        'wireshark', 'tshark', 'neofetch', 'casper', 
-                        'live-boot', 'live-tools', 'grub-efi', 'grub-pc-bin', 
-                        'grub-efi-amd64-bin', 'grub-efi-amd64', 'grub-common', 
-                        'grub2-common', 'isc-dhcp-client']
-        
-        packages_list_min = ['nano', 'curl', 'wget', 'htop',
-                             'neofetch', 'casper', 'live-boot', 
-                             'live-tools', 'grub-efi', 'grub-pc-bin', 
-                             'grub-efi-amd64-bin', 'grub-efi-amd64', 
-                             'grub-common', 'grub2-common', 'isc-dhcp-client']
 
         with self.chroot_manager as chroot:
-            for pkg in packages_list_min:
-                chroot.run_command(f'{self.package_manager} install {pkg} -y')
+            self.console.print('[cyan]Установка пакетов...[/cyan]')
+            
+            for category in AppConfig.package_config.get_all_categories():
+                self.console.print(f'[cyan]Установка {category} пакетов[/cyan]')
+                for packege in AppConfig.package_config.get_packages(category):
+                    try:
+                        chroot.run_command(f'{self.package_manager} install {packege} -y')
+                    except Exception as e:
+                        self.console.print(f'[bold red]Не удалось установить пакет: '
+                                           f'{packege} из категории: {category}[/bold red]')
 
     def _set_hostname(self):
         hostname_path = os.path.join(self.rootfs_path, 'etc/hostname')

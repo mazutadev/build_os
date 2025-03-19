@@ -52,14 +52,6 @@ class FileManager:
         grub_config_content = f'''
 set timeout=5
 set default=0
-set gfxmode=1024x768x32
-set gfxpayload=keep
-
-insmod all_video
-insmod gfxterm
-insmod png
-
-terminal_output gfxterm
 
 menuentry "{AppConfig.project_meta.build_name}" {{
     linux /live/vmlinuz boot=live toram 

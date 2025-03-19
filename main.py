@@ -31,6 +31,11 @@ def install_system(distro, release, arch, method='clean_install', force_reinstal
             #build_manager.prepare_usb()
             build_manager.prepare_pxe()
 
+def test():
+    print(AppConfig.storage.project_root)
+    print(AppConfig.package_config.get_packages('base'))
+    print(AppConfig.package_config.get_all_categories())
+
 if __name__ == "__main__":
     install_system('ubuntu', 'noble', 'amd64', 
                    method='clean_install', force_reinstall=False, interactive=False)

@@ -1,5 +1,8 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 import json
+import yaml
+import os
+from typing import Dict, List
 
 @dataclass
 class StorageConfig:
@@ -27,14 +30,44 @@ class MetaConfig:
     build_date: str = ''
     build_name: str = ''
 
+@dataclass
+class PackageConfig:
+    packages: Dict[str, List[str]] = field(default_factory=dict)
+
+    def add_package(self, category: str, package: str):
+        if category not in self.packages:
+            self.packages[category] = []
+        self.packages[category].append(package)
+
+    def remove_package(self, category: str, package: str):
+        if category in self.packages and package in self.packages[category]:
+            self.packages[category].remove(package)
+
+    def get_packages(self, category: str):
+        return self.packages.get(category, [])
+    
+    def get_all_categories(self):
+        return list(self.packages.keys())
+
 
 class AppConfig:
     storage: StorageConfig = StorageConfig()
     project_meta: MetaConfig = MetaConfig()
+    package_config: PackageConfig = PackageConfig()
     _config_file = 'config.json'
+    _packages_file = 'pakages_list.yaml'
 
     _storage_dirs = {}
     _project_meta = {}
+
+    @classmethod
+    def load_packages(cls):
+        __packages_file_path = os.path.join(cls.storage.project_root, 'src', 'configs', 'packages', cls._packages_file)
+        print(__packages_file_path)
+        if os.path.exists(__packages_file_path):
+            with open(__packages_file_path, 'r') as f:
+                data = yaml.safe_load(f) or {}
+                cls.package_config = PackageConfig(data.get('packages', {}))
 
     @classmethod
     def set_storage_dir(cls, name, dir):

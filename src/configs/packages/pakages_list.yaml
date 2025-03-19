@@ -1,0 +1,88 @@
+packages:
+  base:
+    - bash
+    - coreutils
+    - sudo
+    - nano
+    - vim
+    - tree
+  network:
+    - curl
+    - wget
+    - iproute2
+    - net-tools
+    - nmap
+    - dnsutils
+    - isc-dhcp-client
+  monitoring:
+    - htop
+    - btop
+    - glances
+    - iotop
+    - lm-sensors
+  diagnostics:
+    - lshw
+    - hwinfo
+    - pciutils
+    - usbutils
+    - dmidecode
+    - inxi
+  storage:
+    - smartmontools
+    - hdparm
+    - nvme-cli
+    - xfsprogs
+    - btrfs-progs
+    - f2fs-tools
+    - exfat-utils
+  performance_testing:
+    - sysbench
+    - fio
+    - stress-ng
+    - iperf3
+    - bonnie++
+  remote_access:
+    - openssh-server
+    - sshpass
+    - mosh
+    - screen
+    - tmux
+  gpu_testing:
+    - nvidia-utils
+    - cliinfo
+    - mesa-utils
+  development_tools:
+    - git
+    - docker.io
+    - make
+    - gcc
+    - python3
+    - python3-pip
+    - python3-venv
+    - strace
+    - ltrace
+    - gdb
+  bmc:
+    - ipmitool
+    - freeipmi
+    - openipmi
+    - redfishtool
+    - ipmiutil
+  frimware:
+    - fwupd
+    - flashrom
+    - efibootmgr
+    - lvfs
+    - sbctl
+  boot:
+    - live-boot
+    - live-tools
+    - casper
+    - grub-efi
+    - grub-pc-bin
+    - grub-efi-amd64-bin
+    - grub-efi-amd64
+    - grub-common
+    - grub2-common
+  utils:
+    - mc
