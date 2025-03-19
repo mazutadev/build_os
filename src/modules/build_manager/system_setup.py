@@ -1,7 +1,5 @@
 import os
 import shutil
-from rich.console import Console
-from modules.command_executor import CommandExecutor
 from modules.chroot_manager.chroot_manager import ChrootManager
 from modules.build_manager.grub_installer import GrubInstaller
 from core.di import DIContainer
@@ -13,11 +11,12 @@ class SystemSetup:
         self.executer = DIContainer.resolve('executer')
         self.console = DIContainer.resolve('console')
 
-        self.project_root = AppConfig.get_storage_dir('project_root')
-        self.rootfs_path = AppConfig.get_storage_dir('rootfs_path')
-        self.distro = AppConfig.get_project_meta('distro')
-        self.release = AppConfig.get_project_meta('release')
-        self.arch = AppConfig.get_project_meta('arch')
+        self.project_root = AppConfig.storage.project_root
+        self.rootfs_path = AppConfig.storage.rootfs_path
+        self.distro = AppConfig.project_meta.distro
+        self.release = AppConfig.project_meta.release
+        self.arch = AppConfig.project_meta.arch
+        self.package_manager = AppConfig.project_meta.package_manager
         self.hostname = hostname
         self.timezone = timezone
         
@@ -25,20 +24,18 @@ class SystemSetup:
         self.grub_installer: GrubInstaller = None
         
     def init_system(self):
-        if self.distro == 'ubuntu':
-            self.package_manager = AppConfig.get_project_meta('package_manager')
 
-            self._set_mirrors()
-            self._set_hostname()
+        self._set_mirrors()
+        self._set_hostname()
 
-            with self.chroot_manager as chroot:
-                self._set_locale(chroot=chroot)
-                self._set_timezone(chroot=chroot)
-                self._set_fonts(chroot=chroot)
-                self._update_package_manager(chroot=chroot, package_manager=self.package_manager)
-                self._install_kernel(chroot=chroot)
-                self._update_package_manager(chroot=chroot, package_manager=self.package_manager)
-                self._update_initramfs(chroot=chroot)
+        with self.chroot_manager as chroot:
+            self._set_locale(chroot=chroot)
+            self._set_timezone(chroot=chroot)
+            self._set_fonts(chroot=chroot)
+            self._update_package_manager(chroot=chroot, package_manager=self.package_manager)
+            self._install_kernel(chroot=chroot)
+            self._update_package_manager(chroot=chroot, package_manager=self.package_manager)
+            self._update_initramfs(chroot=chroot)
 
     def _user_exists(self, username, chroot):
         user_exists = chroot.run_command(f'id -u {username}')

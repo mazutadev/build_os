@@ -7,11 +7,11 @@ class DebootStrapInstaller:
         self.console = DIContainer.resolve('console')
         self.executer = DIContainer.resolve('executer')
         
-        self.project_root = AppConfig.get_storage_dir('project_root')
-        self.rootfs_path = AppConfig.get_storage_dir('rootfs_path')
-        self.distro = AppConfig.get_project_meta('distro')
-        self.release = AppConfig.get_project_meta('release')
-        self.arch = AppConfig.get_project_meta('arch')
+        self.project_root = AppConfig.storage.project_root
+        self.rootfs_path = AppConfig.storage.rootfs_path
+        self.distro = AppConfig.project_meta.distro
+        self.release = AppConfig.project_meta.release
+        self.arch = AppConfig.project_meta.arch
 
         self.console.print('[cyan]Проверка debootstrap...[/cyan]')
         self.executer.run('dpkg -s debootstrap || apt install -y debootstrap', capture_output=False)
@@ -29,7 +29,7 @@ class DebootStrapInstaller:
         if self._is_system_installed():
             self.console.print(f'[bold yellow]Система уже установлена в {self.rootfs_path}[/bold yellow]')
 
-            if not AppConfig.get_project_meta('force_reinstall'):
+            if not AppConfig.project_meta.force_reinstall:
                 self.console.print('[bold green]Переход к настройке существующей системы...[/bold green]')
                 return True
             self.console.print('[bold red]Перезаписываю систему![/bold red]')

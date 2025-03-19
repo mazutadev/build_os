@@ -1,12 +1,10 @@
 import os
-from rich.console import Console
-from modules.command_executor import CommandExecutor
 from core.di import DIContainer
 from core.app_config import AppConfig
 
 class ChrootManager:
     def __init__(self):
-        self.rootfs_path = AppConfig.get_storage_dir('rootfs_path')
+        self.rootfs_path = AppConfig.storage.rootfs_path
         self.mount_points = ['/proc', '/sys', '/dev', '/run', '/tmp', '/mnt']
         self.executer = DIContainer.resolve('executer')
         self.console = DIContainer.resolve('console')

@@ -23,7 +23,7 @@ def _init_dependencies():
      DIContainer.register('console', Console())
 
 def _init_storage():
-     AppConfig.set_storage_dir('project_root', _find_project_root())
+     AppConfig.storage.project_root = _find_project_root()
 
 def init_app():
      _init_storage()

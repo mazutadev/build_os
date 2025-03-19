@@ -1,5 +1,3 @@
-import os
-import datetime
 from modules.storage_manager.storage_manager import StorageManager
 from modules.chroot_manager.chroot_manager import ChrootManager
 from modules.build_manager.system_installer import SystemInstaller
@@ -14,10 +12,10 @@ class BuildManager:
     def __init__(self):
         self.console = DIContainer.resolve('console')
         self.executer = DIContainer.resolve('executer')
-        self.method = AppConfig.get_project_meta('method')
-        self.distro = AppConfig.get_project_meta('distro')
-        self.release = AppConfig.get_project_meta('release')
-        self.arch = AppConfig.get_project_meta('arch')
+        self.method = AppConfig.project_meta.method
+        self.distro = AppConfig.project_meta.distro
+        self.release = AppConfig.project_meta.release
+        self.arch = AppConfig.project_meta.arch
         self.ready_to_setup = False
         self.build_dir = None
         self.usb_manager = None
@@ -32,7 +30,9 @@ class BuildManager:
             self.ready_to_setup = self.installer.install()
 
         except Exception as e:
-            self.console.print(f'[bold red]При установке системы методом: {AppConfig.get_project_meta('installer')} произошла ошибка: {e}[/bold red]')
+            self.console.print(f'[bold red]При установке системы методом: '
+                               f'{AppConfig.project_meta.installer} произошла ошибка: '
+                               f'{e}[/bold red]')
             return
 
     def init_system(self):

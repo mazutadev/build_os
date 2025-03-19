@@ -1,8 +1,5 @@
 import os
 import shutil
-from rich.console import Console
-
-from modules.command_executor import CommandExecutor
 from core.di import DIContainer
 from core.app_config import AppConfig
 
@@ -10,10 +7,10 @@ class FileManager:
     def __init__(self):
         self.executer = DIContainer.resolve('executer')
         self.console = DIContainer.resolve('console')
-        self.project_root = AppConfig.get_storage_dir('project_root')
-        self.rootfs_path = AppConfig.get_storage_dir('rootfs_path')
-        self.squashfs_path = AppConfig.get_storage_dir('squashfs_path')
-        self.live_os_path = AppConfig.get_storage_dir('live_os_path')
+        self.project_root = AppConfig.storage.project_root
+        self.rootfs_path = AppConfig.storage.rootfs_path
+        self.squashfs_path = AppConfig.storage.squashfs_path
+        self.live_os_path = AppConfig.storage.live_os_path
         self.usb_manager = None
         
         self._find_files_paths()
@@ -48,18 +45,26 @@ class FileManager:
         os.makedirs(bios_boot_live, exist_ok=True)
         os.makedirs(uefi_boot_live, exist_ok=True)
 
-        AppConfig.set_storage_dir('bios_boot_live', bios_boot_live)
-        AppConfig.set_storage_dir('uefi_boot_live', uefi_boot_live)
+        AppConfig.storage.bios_boot_live = bios_boot_live
+        AppConfig.storage.uefi_boot_live = uefi_boot_live
 
         # 📌 Создаем grub.cfg для BIOS и UEFI
-        grub_config_content = '''
+        grub_config_content = f'''
 set timeout=5
 set default=0
+set gfxmode=1024x768x32
+set gfxpayload=keep
 
-menuentry "Live System" {
-    linux /live/vmlinuz boot=live toram
+insmod all_video
+insmod gfxterm
+insmod png
+
+terminal_output gfxterm
+
+menuentry "{AppConfig.project_meta.build_name}" {{
+    linux /live/vmlinuz boot=live toram 
     initrd /live/initrd.img
-}
+}}
 '''
 
         for cfg_path in [os.path.join(uefi_boot_live, 'grub.cfg'), os.path.join(self.live_os_path, 'boot/grub/grub.cfg')]:

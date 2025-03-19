@@ -2,5 +2,8 @@
     "cSpell.words": [
         "rootfs",
         "squashfs"
+    ],
+    "python.analysis.extraPaths": [
+        "./src"
     ]
 }

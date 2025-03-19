@@ -1,7 +1,5 @@
 import os
 import datetime
-from rich.console import Console
-from modules.command_executor import CommandExecutor, CommandResult
 from modules.storage_manager.file_manager import FileManager
 from core.app_config import AppConfig
 from core.di import DIContainer
@@ -11,10 +9,10 @@ class StorageManager:
     def __init__(self):
         self.executer = DIContainer.resolve('executer')
         self.console = DIContainer.resolve('console')
-        self.project_root = AppConfig.get_storage_dir('project_root')
-        self.distro = AppConfig.get_project_meta('distro')
-        self.release = AppConfig.get_project_meta('release')
-        self.method = AppConfig.get_project_meta('method')
+        self.project_root = AppConfig.storage.project_root
+        self.distro = AppConfig.project_meta.distro
+        self.release = AppConfig.project_meta.release
+        self.method = AppConfig.project_meta.method
         self.build_dir = None
         self.rootfs_path = None
         self.squashfs_path = None
@@ -27,11 +25,13 @@ class StorageManager:
     
     def _create_build_directory(self):
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
-        AppConfig.set_project_meta('build_date', date_str)
+        AppConfig.project_meta.build_date = date_str
+
         build_name = f'{self.distro}_{self.release}_{date_str}_{self.method}'
-        AppConfig.set_project_meta('build_name', build_name)
+        AppConfig.project_meta.build_name = build_name
+
         self.build_dir = os.path.join(self.project_root, 'build', build_name)
-        AppConfig.set_storage_dir('build_dir', self.build_dir)
+        AppConfig.storage.build_dir = build_name
 
         # Определяем нужные директории
         directories = {
@@ -54,17 +54,19 @@ class StorageManager:
                     self.console.print(f'[green]Созданы поддиректории Live ISO.[/green]')
 
         self.rootfs_path = directories['root_fs']
-        AppConfig.set_storage_dir('rootfs_path', self.rootfs_path)
+        AppConfig.storage.rootfs_path = self.rootfs_path
 
         self.squashfs_path = directories['squashfs']
-        AppConfig.set_storage_dir('squashfs_path', self.squashfs_path)
+        AppConfig.storage.squashfs_path = self.squashfs_path
         
         self.live_os_path = directories['live_iso']
-        AppConfig.set_storage_dir('live_os_path', self.live_os_path)
+        AppConfig.storage.live_os_path = self.live_os_path
+
         self.boot_dir = directories['boot']
-        AppConfig.set_storage_dir('boot_dir', self.boot_dir)
+        AppConfig.storage.boot_dir = self.boot_dir
+
         self.boot_dir_efi = directories['boot_efi']
-        AppConfig.set_storage_dir('boot_dir_efi', self.boot_dir_efi)
+        AppConfig.storage.boot_dir_efi = self.boot_dir_efi
 
         if self.squashfs_path:
             self._create_file_manager()
