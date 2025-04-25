@@ -32,6 +32,8 @@ class SystemSetup:
             self._set_locale(chroot=chroot)
             self._set_timezone(chroot=chroot)
             self._set_fonts(chroot=chroot)
+            self._install_storcli(chroot=chroot)
+            self._install_scripts()
             self._update_package_manager(chroot=chroot, package_manager=self.package_manager)
             self._install_kernel(chroot=chroot)
             self._update_package_manager(chroot=chroot, package_manager=self.package_manager)
@@ -48,12 +50,14 @@ class SystemSetup:
                 return
             
             self.console.print(f'[cyan]👤 Создаю пользователя[/cyan] [cyan]{username}[/cyan]')
-            chroot.run_command(f'useradd -m -s /bin/bash {username}')
-            chroot.run_command(f'bash -c "echo \'{username}:{password}\' | chpasswd"')
-
-            self.console.print(f'[cyan]📂 Настраиваем домашнюю директорию...[/cyan]')
+            chroot.run_command(f'useradd -M -s /bin/bash {username}')
+            
             home_dir = os.path.join('home', username)
-            chroot.run_command(f'chown -R {username}:{username} {home_dir}')
+            chroot.run_command(f'mkdir -p {home_dir}')
+            chroot.run_command(f'chown {username}:{username} {home_dir}')
+            chroot.run_command(f'chmod 700 {home_dir}')
+            
+            chroot.run_command(f'bash -c "echo \'{username}:{password}\' | chpasswd"')
 
             if sudo:
                 chroot.run_command(f'usermod -aG sudo {username}')
@@ -146,8 +150,30 @@ class SystemSetup:
         with open(timezone_path, 'w') as f:
             f.write(self.timezone)
 
+    def _install_storcli(self, chroot: ChrootManager):
+        binaries_path_dest = os.path.join(self.project_root, 'src', 'binaries')
+        #storcli_path_dest = os.path.join(binaries_path_dest, 'StorCLI-1.01.10', 'opt')
+
+        #binaries_path = os.path.join(self.rootfs_path, 'opt')
+
+        self.executer.run(f'cp {binaries_path_dest}/storcli_007.3205.0000.0000_all.deb {self.rootfs_path}/')
+
+        chroot.run_command(f'dpkg -i /storcli_007.3205.0000.0000_all.deb')
+
+        #self.executer.run(f'cp -r {storcli_path_dest}/* {binaries_path}/')
+
+    def _install_scripts(self):
+        scripts_path_dest = os.path.join(self.project_root, 'src', 'scripts')
+        scripts_path = os.path.join(self.rootfs_path, 'opt')
+
+        self.executer.run(f'cp -r {scripts_path_dest}/* {scripts_path}/')
+
     def _set_mirrors(self):
-        source_list_dir = os.path.join(self.project_root, 'src/configs/mirrors/ubuntu/noble/ubuntu.sources')
+        if self.release == 'noble':
+            source_list_dir = os.path.join(self.project_root, 'src/configs/mirrors/ubuntu/noble/ubuntu.sources')
+        elif self.release == 'focal':
+            source_list_dir = os.path.join(self.project_root, 'src/configs/mirrors/ubuntu/focal/ubuntu.sources')
+
         source_list_dir_dest = os.path.join(self.rootfs_path, 'etc/apt/sources.list.d/ubuntu.sources')
 
         self.console.print(f'[cyan]Копирование {source_list_dir} в {source_list_dir_dest}[/cyan]')

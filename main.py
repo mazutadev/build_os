@@ -37,5 +37,5 @@ def test():
     print(AppConfig.package_config.get_all_categories())
 
 if __name__ == "__main__":
-    install_system('ubuntu', 'noble', 'amd64', 
+    install_system('ubuntu', 'focal', 'amd64', 
                    method='clean_install', force_reinstall=False, interactive=False)

@@ -6,6 +6,8 @@ packages:
     - nano
     - vim
     - tree
+    - libncurses5
+    - libncurses5-dev
   network:
     - curl
     - wget
@@ -35,6 +37,7 @@ packages:
     - btrfs-progs
     - f2fs-tools
     - exfat-utils
+    - parted
   performance_testing:
     - sysbench
     - fio
